@@ -20,12 +20,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # For Production (Gmail Example)
-#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-#EMAIL_HOST = 'smtp.gmail.com'
-#EMAIL_PORT = 587
-#EMAIL_USE_TLS = True
-#EMAIL_HOST_USER = 'ahmadz.student1@gmail.com'
-#EMAIL_HOST_PASSWORD = 'bK7YhLRuzew0'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # SMTP server for Gmail
+EMAIL_PORT = 587  # Port for TLS
+EMAIL_USE_TLS = True  # Use TLS for secure connection
+EMAIL_HOST_USER = 'ahmadz.student1@gmail.com'  # Your Gmail address
+EMAIL_HOST_PASSWORD = 'lxjp rpzq armf zcqf'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
