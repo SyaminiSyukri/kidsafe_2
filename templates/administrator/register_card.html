@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Register Card</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Register Card</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% include 'includes/messages.html' %}
+<div id="messages"></div> <!-- This will show error messages -->
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Register New Card</h5>
+                <form method="POST" id="registerCardForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="card_id">Card ID</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="card_id" name="card_id" placeholder="Scan your card here" required readonly>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="register-button">Register Card</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        function scanCard() {
+            $.ajax({
+                url: "{% url 'read_card' %}",
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.card_id) {
+                        $('#card_id').val(response.card_id);
+                    }
+                },
+                error: function(xhr) {
+                    $('#messages').empty();
+                    var alert = $('<div class="alert alert-danger"></div>').text(xhr.responseJSON.error || 'An unknown error occurred.');
+                    $('#messages').append(alert);
+                }
+            });
+        }
+
+        // Automatically scan card every 2 seconds
+        setInterval(scanCard, 2000);
+
+        // Handle the register button click
+        $('#register-button').click(function() {
+            var cardId = $('#card_id').val().trim(); // Get the card ID value
+
+            if (!cardId) {
+                // Show error message if no card ID is detected
+                $('#messages').empty(); // Clear previous messages
+                var alert = $('<div class="alert alert-danger"></div>').text('No card detected. Please scan a card!');
+                $('#messages').append(alert);
+            } else {
+                // If card ID is present, submit the form
+                $('#registerCardForm').submit();
+            }
+        });
+    });
+</script>
+{% endblock %}

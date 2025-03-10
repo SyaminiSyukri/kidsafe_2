@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Process Payment</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'canteen_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Process Payment</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Process Student Payment</h5>
+
+                <!-- Card ID Input -->
+                <div class="form-group">
+                    <label for="card-id">Card ID</label>
+                    <input type="text" id="card-id" class="form-control" readonly>
+                </div>
+
+                <!-- Student Details as Alert Info -->
+                <div id="student-details" class="alert alert-info mt-3" style="display: none;">
+                    <p><strong>Student Name:</strong> <span id="student-name"></span></p>
+                    <p><strong>Current Balance:</strong> $<span id="current-balance"></span></p>
+                </div>
+
+                <!-- Dietary Warnings -->
+                <div id="food-allergy-warning" class="alert alert-warning mt-3" style="display: none;">
+                    <strong>Food Allergy:</strong> <span id="food-allergy"></span>
+                </div>
+
+                <div id="dietary-restriction-warning" class="alert alert-warning mt-3" style="display: none;">
+                    <strong>Dietary Restriction:</strong> <span id="dietary-restriction"></span>
+                </div>
+
+                <!-- Food Selection -->
+                <div class="form-group">
+                    <label for="food-item">Select Food Item</label>
+                    <select id="food-item" class="form-control">
+                        <option value="">Select a food item</option>
+                        {% for item in inventory_items %}
+                            <option value="{{ item.id }}" data-price="{{ item.price }}">{{ item.name }} - ${{ item.price }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Quantity Input -->
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" id="quantity" class="form-control" placeholder="Enter quantity" min="1" value="1">
+                </div>
+
+                <!-- Add to Cart Button -->
+                <div class="form-group">
+                    <button id="add-to-cart" class="btn btn-primary">Add to Cart</button>
+                </div>
+
+                <!-- Cart Display -->
+                <div id="cart" class="mt-3">
+                    <h5>Cart</h5>
+                    <ul id="cart-items" class="list-group"></ul>
+                </div>
+                <br>
+
+                <!-- Amount Input -->
+                <div class="form-group">
+                    <label for="amount">Total Amount to Deduct:</label>
+                    <input type="number" id="amount" class="form-control" placeholder="Enter amount" step="0.01" min="0" readonly>
+                </div>
+
+                <!-- Status Messages -->
+                <div id="status-message" class="alert mt-3" style="display: none;"></div>
+
+                <!-- Buttons -->
+                <div class="form-group">
+                    <button id="process-payment-btn" class="btn btn-success">Process Payment</button>
+                    <a href="{% url 'process_payment' %}" class="btn btn-secondary ml-2">
+                        <i class="fas fa-sync-alt"></i>
+                    </a>
+                </div>
+
+                <!-- Success Message -->
+                <div id="success-message" class="alert alert-success mt-3" style="display: none;">
+                    <strong>Success:</strong> <span id="success-text"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        let cart = [];
+
+        function scanCard() {
+            $.ajax({
+                url: "{% url 'read_card' %}",
+                method: 'GET',
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+                success: function (response) {
+                    if (response.card_id) {
+                        $('#card-id').val(response.card_id);
+
+                        if (response.assigned) {
+                            $.ajax({
+                                url: "{% url 'process_payment' %}",
+                                method: 'POST',
+                                headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': '{{ csrf_token }}'},
+                                data: {card_id: response.card_id},
+                                success: function (studentResponse) {
+                                    if (studentResponse.success) {
+                                        $('#student-name').text(studentResponse.student_name);
+                                        $('#current-balance').text(studentResponse.current_balance);
+                                        $('#student-details').show();
+
+                                        if (studentResponse.food_allergy) {
+                                            $('#food-allergy').text(studentResponse.food_allergy);
+                                            $('#food-allergy-warning').show();
+                                        } else {
+                                            $('#food-allergy-warning').hide();
+                                        }
+
+                                        if (studentResponse.dietary_restriction) {
+                                            $('#dietary-restriction').text(studentResponse.dietary_restriction);
+                                            $('#dietary-restriction-warning').show();
+                                        } else {
+                                            $('#dietary-restriction-warning').hide();
+                                        }
+
+                                        if (studentResponse.matching_restrictions && studentResponse.matching_restrictions.length > 0) {
+                                            $('#matching-restrictions-list').empty();
+                                            studentResponse.matching_restrictions.forEach(function (restriction) {
+                                                $('#matching-restrictions-list').append(`<li>${restriction}</li>`);
+                                            });
+                                            $('#matching-restrictions-warning').show();
+                                        } else {
+                                            $('#matching-restrictions-warning').hide();
+                                        }
+
+                                        $('#status-message').hide();
+                                    } else {
+                                        showError(studentResponse.error);
+                                    }
+                                },
+                                error: function () {
+                                    showError('Error fetching student details.');
+                                }
+                            });
+                        } else {
+                            showError('This card is not assigned to a student.');
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    showError(xhr.responseJSON?.error || 'An error occurred while scanning the card.');
+                }
+            });
+        }
+
+        function showError(message) {
+            $('#status-message').removeClass('alert-info').addClass('alert-danger').text(message).show();
+        }
+
+        function updateCart() {
+            $('#cart-items').empty();
+            let totalAmount = 0;
+            cart.forEach(item => {
+                $('#cart-items').append(`<li class="list-group-item">${item.name} - $${item.price} x ${item.quantity} = $${item.total}</li>`);
+                totalAmount += item.total;
+            });
+            $('#total-amount').text(totalAmount.toFixed(2));
+            $('#amount').val(totalAmount.toFixed(2));
+        }
+
+        $('#add-to-cart').click(function () {
+            const foodItem = $('#food-item').find(':selected');
+            const foodId = foodItem.val();
+            const foodName = foodItem.text().split(' - ')[0];
+            const foodPrice = parseFloat(foodItem.data('price'));
+            const quantity = parseInt($('#quantity').val());
+
+            if (!foodId || !quantity) {
+                showError('Please select a food item and enter a valid quantity.');
+                return;
+            }
+
+            const total = foodPrice * quantity;
+            cart.push({ id: foodId, name: foodName, price: foodPrice, quantity: quantity, total: total });
+            updateCart();
+        });
+
+        $('#process-payment-btn').click(function () {
+            const cardId = $('#card-id').val();
+            const amount = $('#amount').val();
+
+            if (!cardId) {
+                showError('Please scan a card.');
+                return;
+            }
+
+            if (!amount || amount <= 0) {
+                showError('Please add items to the cart.');
+                return;
+            }
+
+            $.ajax({
+                url: "{% url 'process_payment' %}",
+                method: 'POST',
+                headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': '{{ csrf_token }}'},
+                data: {card_id: cardId, amount: amount},
+                success: function (response) {
+                    if (response.success) {
+                        $('#success-text').text(response.message);
+                        $('#success-message').show();
+                        $('#current-balance').text(response.new_balance);
+                        $('#status-message').hide();
+                        cart = [];
+                        updateCart();
+                    } else {
+                        showError(response.error);
+                    }
+                },
+                error: function (xhr) {
+                    showError(xhr.responseJSON?.error || 'An unknown error occurred.');
+                }
+            });
+        });
+
+        setInterval(scanCard, 2000);
+    });
+</script>
+{% endblock %}

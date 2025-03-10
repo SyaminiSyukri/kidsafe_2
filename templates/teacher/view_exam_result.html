@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Exam Results</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'teacher_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Exam Results</li>
+            </ul>
+        </div>
+        <div class="col-auto text-right float-right ml-auto">
+            <a href="{% url 'add_exam_result' %}" class="btn btn-outline-primary mr-2"><i class="fas fa-plus"></i> Add Exam Result</a>
+        </div>
+    </div>
+</div>
+{% include 'includes/messages.html' %}
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <!-- Search, Refresh, and Filter Bar -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="get" action="{% url 'view_exam_result' %}">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="search" placeholder="Search by student name" value="{{ search_query }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="submit">Search</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="col-md-5">
+                        <form method="get" action="{% url 'view_exam_result' %}">
+                            <div class="input-group">
+                                <select class="form-control" name="exam_title_id">
+                                    <option value="">All Exam Titles</option>
+                                    {% for title in exam_titles %}
+                                    <option value="{{ title.id }}" {% if title.id|stringformat:"s" == selected_exam_title_id %}selected{% endif %}>
+                                        {{ title.title }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="submit">Filter</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="col-md-1">
+                        <button class="btn btn-secondary" id="refresh-button">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Exam Results Tables -->
+                {% if grouped_results %}
+                    {% for student_name, exam_results in grouped_results.items %}
+                        <div class="card card-table mb-4">
+                            <div class="card-header">
+                                <h4 class="card-title">Student Name: <strong>{{ student_name }}</strong></h4>
+                            </div>
+                            <div class="card-body">
+                                {% for exam_title, results in exam_results.items %}
+                                    <div class="mb-4">
+                                        <h5 class="mb-3">Exam Title: <strong>{{ exam_title }}</strong></h5>
+                                        <div class="table-responsive">
+                                            <table class="table table-hover table-center mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Subject</th>
+                                                        <th>Marks</th>
+                                                        <th>Created At</th>
+                                                        <th>Updated At</th>
+                                                        <th class="text-right">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for result in results %}
+                                                        <tr>
+                                                            <td>{{ result.subject.name }}</td>
+                                                            <td>{{ result.marks }}</td>
+                                                            <td>{{ result.created_at }}</td>
+                                                            <td>{{ result.updated_at }}</td>
+                                                            <td class="text-right">
+                                                                <div class="actions">
+                                                                    <a href="{% url 'edit_exam_result' result.id %}" class="btn btn-sm bg-success-light mr-2">
+                                                                        <i class="fas fa-pen"></i>
+                                                                    </a>
+                                                                    <a href="{% url 'delete_exam_result' result.id %}" class="btn btn-sm bg-danger" onclick="return confirm('Are you sure you want to delete this exam result?');">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    {% empty %}
+                                                        <tr>
+                                                            <td colspan="5" class="text-center">No results available for this exam.</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="text-center">No exam results found.</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('refresh-button').addEventListener('click', function() {
+        // Clear the search input and reset the filter dropdown
+        document.querySelector('input[name="search"]').value = '';
+        document.querySelector('select[name="exam_title_id"]').value = '';
+        // Reload the page
+        window.location.href = "{% url 'view_exam_result' %}";
+    });
+</script>
+
+{% endblock %}

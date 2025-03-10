@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Scan and Assign Card</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Scan and Assign Card</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Scan Card and Assign Student</h5>
+
+                <!-- Card ID Input -->
+                <div class="form-group">
+                    <label for="card-id">Card ID</label>
+                    <input type="text" id="card-id" placeholder="Scan your card here" class="form-control" readonly>
+                </div>
+
+                <!-- Status Messages -->
+                <div id="status-message" class="alert mt-3" style="display: none;"></div>
+
+                <!-- Classroom Dropdown -->
+                <div class="form-group">
+                    <label for="classroom-id">Select Classroom</label>
+                    <select id="classroom-id" class="form-control">
+                        <option value="">Select a classroom</option>
+                        {% for classroom in classrooms %}
+                        <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Student Dropdown -->
+                <div class="form-group">
+                    <label for="student-id">Select Student</label>
+                    <select id="student-id" class="form-control" disabled>
+                        <option value="">Select a student</option>
+                    </select>
+                </div>
+
+                <!-- Assign Button -->
+                <button type="button" class="btn btn-primary" id="assign-card-btn">Assign Student to Card</button>
+
+                <!-- Assigned Student Information -->
+                <div id="assigned-student-info" class="alert alert-success mt-3" style="display: none;">
+                    <strong>Assigned Student:</strong>
+                    <p>Name: <span id="student-name"></span></p>
+                    <p>Classroom: <span id="classroom"></span></p>
+                    <p>Issued Date: <span id="issued-date"></span></p>
+                </div>
+
+                <!-- Unassigned Card Message -->
+                <div id="unassigned-card-message" class="alert alert-warning mt-3" style="display: none;">
+                    <span id="unassigned-message"></span>
+                </div>
+
+                <!-- Assigned Card Message -->
+                <div id="assigned-card-message" class="alert alert-success mt-3" style="display: none;">
+                    <!-- Message will be dynamically inserted here -->
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        // Function to automatically scan the card
+        function scanCard() {
+            $.ajax({
+                url: "{% url 'read_card' %}",
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function (response) {
+                    if (response.card_id) {
+                        $('#card-id').val(response.card_id);
+
+                        if (response.registered === false) {
+                            // Card is not registered
+                            $('#status-message').removeClass('alert-info alert-success').addClass('alert-danger').text(response.error).show();
+                            $('#unassigned-card-message').hide(); // Hide unassigned card message
+                            $('#assigned-student-info').hide(); // Hide assigned student info
+                            return;
+                        }
+
+                        if (response.assigned) {
+                            // If the card is already assigned, show the full details
+                            $('#student-name').text(response.student_name);
+                            $('#classroom').text(response.classroom);
+                            $('#issued-date').text(response.issued_date);
+                            $('#assigned-student-info').show();
+                            $('#status-message').removeClass('alert-info').addClass('alert-danger').text('Card is already assigned.').show();
+                        } else {
+                            // If the card is not assigned, show "No student is assigned"
+                            $('#unassigned-message').text(response.message);
+                            $('#unassigned-card-message').show();
+                            $('#status-message').removeClass('alert-danger').addClass('alert-info').text('Card scanned successfully!').show();
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        $('#status-message').removeClass('alert-info alert-success').addClass('alert-danger').text('Error: ' + xhr.responseJSON.error).show();
+                    }
+                }
+            });
+        }
+
+        // Automatically scan card every 2 seconds
+        setInterval(scanCard, 2000);
+
+        // Fetch students based on selected classroom
+        $('#classroom-id').change(function () {
+            const classroomId = $(this).val();
+            if (classroomId) {
+                $.ajax({
+                    url: "{% url 'get_students_by_classroom' %}",
+                    method: 'GET',
+                    data: {
+                        classroom_id: classroomId
+                    },
+                    success: function (response) {
+                        $('#student-id').empty().append('<option value="">Select a student</option>');
+                        response.students.forEach(function (student) {
+                            $('#student-id').append(`<option value="${student.id}">${student.first_name} ${student.last_name}</option>`);
+                        });
+                        $('#student-id').prop('disabled', false);
+                    },
+                    error: function (xhr) {
+                        $('#status-message').removeClass('alert-info').addClass('alert-danger').text('Error fetching students.').show();
+                    }
+                });
+            } else {
+                $('#student-id').empty().append('<option value="">Select a student</option>').prop('disabled', true);
+            }
+        });
+
+        // Assign Card Button
+        $('#assign-card-btn').click(function () {
+            const cardId = $('#card-id').val();
+            const studentId = $('#student-id').val();
+
+            if (!cardId) {
+                $('#status-message').removeClass('alert-info').addClass('alert-danger').text('Please scan a card.').show();
+                return;
+            }
+
+            if (!studentId) {
+                $('#status-message').removeClass('alert-info').addClass('alert-danger').text('Please select a student.').show();
+                return;
+            }
+
+            $.ajax({
+                url: "{% url 'scan_and_assign_card' %}",
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                data: {
+                    card_id: cardId,
+                    student_id: studentId
+                },
+                success: function (response) {
+                    if (response.success) {
+                        // Show simplified success message
+                        $('#status-message').removeClass('alert-danger').addClass('alert-success').text(response.message).show();
+
+                        // Show assigned student details in the assigned-card-message section
+                        $('#assigned-card-message').html(`
+                        <strong>Assigned Student:</strong>
+                        <p>Student ${response.student_name} assigned to card ${response.card_id}.</p>
+                    `).show();
+
+                        // Remove the assigned student from the dropdown
+                        $('#student-id option[value="' + studentId + '"]').remove();
+                    } else {
+                        $('#status-message').removeClass('alert-info').addClass('alert-danger').text('Error: ' + response.error).show();
+                    }
+                },
+                error: function (xhr) {
+                    console.error(xhr); // Log the full error object to the console
+                    const errorMessage = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'An unknown error occurred.';
+                    $('#status-message').removeClass('alert-info').addClass('alert-danger').text('Error: ' + errorMessage).show();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

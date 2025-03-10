@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Dietary Details</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'student_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Dietary</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% include 'includes/messages.html' %}
+<div class="container">
+
+    <div class="row mb-4">
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Add Food Allergies</h5>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <textarea name="food_allergy" class="form-control" rows="3" placeholder="Enter any food allergies..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Add Dietary Restrictions</h5>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <textarea name="dietary_restriction" class="form-control" rows="3" placeholder="Enter any dietary restrictions..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mt-4">Current Dietary Details</h3>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mt-2 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Current Food Allergies</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Food Allergy</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for allergy in food_allergies %}
+                                    <tr>
+                                        <td>{{ allergy }}</td>
+                                        <td>
+                                            <form method="POST" action="{% url 'delete_dietary_detail' 'food_allergy' allergy %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this item?');"><i class="fas fa-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="2" class="text-center">No food allergies added yet.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mt-2 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Current Dietary Restrictions</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Dietary Restriction</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for restriction in dietary_restrictions %}
+                                    <tr>
+                                        <td>{{ restriction }}</td>
+                                        <td>
+                                            <form method="POST" action="{% url 'delete_dietary_detail' 'dietary_restriction' restriction %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this item?');"><i class="fas fa-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="2" class="text-center">No dietary restrictions added yet.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

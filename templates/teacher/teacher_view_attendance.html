@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Attendance Records for {{ classroom.name }}</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'teacher_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Attendance Records</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Attendance Records</h5>
+
+                <!-- Search and Filter Bar -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <form method="GET" action="{% url 'teacher_view_attendance' %}">
+                            <div class="input-group">
+                                <input type="date" name="date" class="form-control" value="{{ selected_date }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="submit">Filter</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="col-md-6">
+                        <form method="GET" action="{% url 'teacher_view_attendance' %}">
+                            <div class="input-group">
+                                <input type="text" name="student_name" class="form-control" placeholder="Search by student name" value="{{ request.GET.student_name }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="submit">Search</button>
+                                </div>
+                            </div>
+                            <input type="hidden" name="date" value="{{ selected_date }}">
+                        </form>
+                    </div>
+
+                    <div class="col-md-2">
+                        <button class="btn btn-secondary" id="refresh-button">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Attendance Records Table -->
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Arrival Time</th>
+                            <th>Departure Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in attendance_records %}
+                        <tr>
+                            <td>{{ record.student.admin.first_name }} {{ record.student.admin.last_name }}</td>
+                            <td>{{ record.arrival_time }}</td>
+                            <td>{{ record.departure_time|default:"Still in class" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center">No attendance records found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('refresh-button').addEventListener('click', function() {
+        // Reset the date input and student name input
+        document.querySelector('input[name="date"]').value = '';
+        document.querySelector('input[name="student_name"]').value = '';
+        // Reload the page
+        window.location.href = "{% url 'teacher_view_attendance' %}";
+    });
+</script>
+
+{% endblock %}

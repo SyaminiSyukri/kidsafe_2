@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Academic Results</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'student_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Academic Results</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Filter by Exam Title -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <form method="get" action="{% url 'academic_results' %}">
+            <div class="input-group">
+                <select class="form-control" name="exam_title_id">
+                    <option value="">All Exam Titles</option>
+                    {% for title in exam_titles %}
+                        <option value="{{ title.id }}" {% if title.id|stringformat:"s" == selected_exam_title_id %}selected{% endif %}>
+                            {{ title.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">Filter</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Grouped Academic Results by Exam Title -->
+<div class="row">
+    <div class="col-md-12">
+        {% if grouped_results %}
+            {% for exam_title, results in grouped_results.items %} 
+                <div class="card card-table mb-4">
+                    <div class="card-header">
+                        <h4 class="card-title">Exam Title: <strong>{{ exam_title }}</strong></h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Marks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in results %}
+                                        <tr>
+                                            <td>{{ result.subject.name }}</td>
+                                            <td>{{ result.marks }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="2" class="text-center">No results available for this exam.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>    
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="card">
+                <div class="card-body">
+                    <p class="text-center">No academic results available.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

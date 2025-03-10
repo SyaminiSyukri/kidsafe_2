@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Deactivate Card</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'assigned_students' %}">Assigned Students</a></li>
+                <li class="breadcrumb-item active">Deactivate Card</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Deactivate Card</h5>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="current_card_id">Current Card ID</label>
+                        <input type="text" class="form-control" id="current_card_id" value="{{ card.card_id }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="deactivation_reason">Deactivation Reason</label>
+                        <textarea class="form-control" id="deactivation_reason" name="deactivation_reason" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Deactivate Card</button>
+                    <a href="{% url 'assigned_students' %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

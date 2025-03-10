@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Attendance Records</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Attendance Records</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">List of Attendance Records</h5>
+
+                <!-- Search Form -->
+                <form method="GET" action="{% url 'attendance_list' %}" class="mb-3">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="text" name="search" class="form-control" placeholder="Search by student name" value="{{ request.GET.search }}">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="date" name="date" class="form-control" value="{{ selected_date }}">
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary" type="submit">Search</button>
+                            <button class="btn btn-secondary ml-2" type="button" id="refresh-button">
+                                <i class="fa fa-times-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                {% if classroom_attendance %}
+                    {% for classroom, records in classroom_attendance.items %}
+                    <br>
+                    <h6><strong>Classroom: {{ classroom }}</strong></h6> <!-- Display classroom name -->
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Arrival Time</th>
+                                <th>Departure Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if records %}
+                                {% for record in records %}
+                                <tr>
+                                    <td>{{ record.student.admin.first_name }} {{ record.student.admin.last_name }}</td>
+                                    <td>{{ record.arrival_time }}</td>
+                                    <td>{{ record.departure_time|default:"Still in class" }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No attendance records found for this classroom.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-warning">No attendance records found.</div>
+                {% endif %}
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('refresh-button').addEventListener('click', function() {
+        // Clear the search input and reset the date to today
+        document.querySelector('input[name="search"]').value = '';
+        document.querySelector('input[name="date"]').value = '{{ selected_date }}';
+        // Reload the page
+        window.location.href = "{% url 'attendance_list' %}";
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Edit Exam Result</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'view_exam_result' %}">Exam Results</a></li>
+                <li class="breadcrumb-item active">Edit Exam Result</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" action="{% url 'edit_exam_result' exam_result.id %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="form-title"><span>Exam Result Information</span></h5>
+                        </div>
+
+                        <!-- Display Exam Title as Read-Only -->
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Exam Title</label>
+                                <input type="text" class="form-control" value="{{ exam_result.exam_title.title }}" readonly>
+                                <input type="hidden" name="exam_title_id" value="{{ exam_result.exam_title.id }}">
+                            </div>
+                        </div>
+
+                        <!-- Display Student as Read-Only -->
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Student Name</label>
+                                <input type="text" class="form-control" value="{{ exam_result.student.admin.first_name }} {{ exam_result.student.admin.last_name }}" readonly>
+                                <input type="hidden" name="student_id" value="{{ exam_result.student.id }}">
+                            </div>
+                        </div>
+
+                        <!-- Display Subject as Read-Only -->
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Subject</label>
+                                <input type="text" class="form-control" value="{{ exam_result.subject.name }}" readonly>
+                                <input type="hidden" name="subject_id" value="{{ exam_result.subject.id }}">
+                            </div>
+                        </div>
+
+                        <!-- Editable Marks Field -->
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Marks</label>
+                                <input type="number" class="form-control" name="marks" value="{{ exam_result.marks }}" min="0" max="100" required>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Update Exam Result</button>
+                            <a href="{% url 'view_exam_result' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

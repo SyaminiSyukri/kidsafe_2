@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Edit Timetable</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'teacher_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'view_timetable' %}">Timetables</a></li>
+                <li class="breadcrumb-item active">Edit Timetable</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Edit Timetable Information</h5>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <!-- Title (First Row) -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="title">Title</label>
+                                <input type="text" class="form-control" name="title" value="{{ timetable.title }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timetable Image and Current Image (Second Row) -->
+                    <div class="row">
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label for="timetable_image">Timetable Image</label>
+                                <input type="file" class="form-control-file" name="timetable_image">
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            {% if timetable.timetable_image %}
+                                <div class="form-group">
+                                    <label>Current Image</label>
+                                    <div>
+                                        <img src="{{ timetable.timetable_image.url }}" alt="Current Timetable Image" class="img-thumbnail" style="max-width: 100%; height: auto;">
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Update Timetable</button>
+                            <a href="{% url 'view_timetable' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

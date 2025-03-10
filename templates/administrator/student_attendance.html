@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Student Attendance</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Student Attendance</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Scan Your Card to Record Attendance</h5>
+
+                <!-- Card Scanning Section -->
+                <div id="scan-section">
+                    <div id="scan-status" class="alert alert-info">
+                        Place your card on the reader to record attendance.
+                    </div>
+                </div>
+                
+                <!-- Student Details Card -->
+                <div id="student-details-card" class="card mt-3" style="display: none;">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto text-center">
+                                <!-- Larger Profile Picture with Shadow -->
+                                <img id="student-details-profile-pic" src="" alt="Profile Picture" class="rounded-circle shadow-lg" style="width: 120px; height: 120px; border: 3px solid #fff;">
+                            </div>
+                            <div class="col">
+                                <h4 class="card-title mb-3" id="student-details-name" style="color: #2c3e50;"></h4>
+                                <table class="table table-borderless table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-muted"><strong>Classroom:</strong></td>
+                                            <td id="student-details-classroom" class="text-dark"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted"><strong>Gender:</strong></td>
+                                            <td id="student-details-gender" class="text-dark"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted"><strong>Email:</strong></td>
+                                            <td id="student-details-email" class="text-dark"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted"><strong>Arrival Time:</strong></td>
+                                            <td id="student-details-arrival-time" class="text-dark"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted"><strong>Departure Time:</strong></td>
+                                            <td id="student-details-departure-time" class="text-dark"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // Function to scan card automatically
+        function scanCard() {
+            $.ajax({
+                url: "{% url 'read_card' %}",  // Use the read_card endpoint to get the card ID
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.card_id) {
+                        // Card detected, send the card ID to the student_attendance view
+                        $.ajax({
+                            url: "{% url 'scan_attendance' %}",
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            data: {
+                                card_id: response.card_id
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    // Update student details card content
+                                    $('#student-details-profile-pic').attr('src', response.profile_pic);
+                                    $('#student-details-name').text(response.student_name);
+                                    $('#student-details-classroom').text(response.classroom);
+                                    $('#student-details-gender').text(response.gender);
+                                    $('#student-details-email').text(response.email);
+                                    $('#student-details-arrival-time').text(response.arrival_time);
+                                    $('#student-details-departure-time').text(response.departure_time);
+
+                                    // Show the student details card
+                                    $('#student-details-card').fadeIn();
+
+                                    // Hide the card after 5 seconds
+                                    setTimeout(function() {
+                                        $('#student-details-card').fadeOut();
+                                    }, 5000);
+
+                                    // Update scan status
+                                    $('#scan-status').removeClass('alert-danger').addClass('alert-success').text(response.message).show();
+                                } else {
+                                    $('#scan-status').removeClass('alert-info').addClass('alert-danger').text(response.error).show();
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                $('#scan-status').removeClass('alert-info').addClass('alert-danger').text(xhr.responseJSON.error).show();
+                            }
+                        });
+                    } else {
+                        // No card detected
+                        $('#scan-status').removeClass('alert-danger').addClass('alert-info').text('Place your card on the reader to record attendance.').show();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#scan-status').removeClass('alert-info').addClass('alert-danger').text(xhr.responseJSON.error).show();
+                }
+            });
+        }
+
+        // Automatically scan card every 2 seconds
+        setInterval(scanCard, 2000);
+    });
+</script>
+{% endblock %}

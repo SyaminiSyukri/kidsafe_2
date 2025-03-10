@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Welcome, {{ student.admin.first_name }} {{ student.admin.last_name }}</h2>
+
+<div class="student-details">
+    <h3>Your Details</h3>
+    <ul>
+        <li><strong>Name:</strong> {{ student.admin.first_name }} {{ student.admin.last_name }}</li>
+        <li><strong>Email:</strong> {{ student.admin.email }}</li>
+        <li><strong>Gender:</strong> {{ student.gender }}</li>
+        <li><strong>Classroom:</strong> {{ student.classroom_id.name }}</li>
+        <li><strong>Profile Picture:</strong> 
+            {% if student.admin.profile_pic %}
+                <img src="{{ student.admin.profile_pic.url }}" alt="Profile Picture" style="max-width: 100px; height: auto;">
+            {% else %}
+                No profile picture uploaded.
+            {% endif %}
+        </li>
+    </ul>
+</div>
+
+<a href="{% url 'profile' %}" class="btn btn-primary">Update Profile</a>
+{% endblock %}

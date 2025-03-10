@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Account Balance</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'student_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Account Balance</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card card-credit">
+            <div class="card-body">
+                <div class="card-header">
+                    <h5 class="card-title">Your Account Balance</h5>
+                </div>
+                <div class="card-content">
+                    <div class="card-logo">
+                        <img src="{% static 'assets/img/logo-kidsafe.png' %}" alt="KidSafe Logo" class="logo">
+                    </div>
+                    <div class="card-details">
+                        <p class="card-text">Current Balance</p>
+                        <h2 class="balance">${{ balance }}</h2>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <p class="card-text">KidSafe &copy; 2025.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-credit {
+        background: linear-gradient(135deg, #e79736, #eec596);
+        border-radius: 15px;
+        color: white;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        border: none;
+    }
+
+    .card-credit .card-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .card-credit .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        color: black;
+        text-align: center;
+    }
+
+    .card-credit .card-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .card-credit .card-logo {
+        margin-bottom: 20px;
+    }
+
+    .card-credit .card-logo .logo {
+        width: 60px;
+        height: auto;
+    }
+
+    .card-credit .card-details {
+        margin-bottom: 20px;
+    }
+
+    .card-credit .card-text {
+        font-size: 1rem;
+        margin: 0;
+        opacity: 0.8;
+    }
+
+    .card-credit .balance {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 10px 0;
+    }
+
+    .card-credit .card-footer {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        color: black;
+        text-align: center;
+    }
+</style>
+
+{% endblock %}

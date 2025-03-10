@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Read Card</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Read Card</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Unassigned Card Message -->
+<div id="unassigned-card-message" class="alert alert-warning" style="display: none;">
+    <span id="unassigned-message"></span>
+</div>
+
+<!-- Error Message -->
+<div id="error-message" class="alert alert-danger" style="display: none;">
+    <span id="error-text"></span>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Scan the card to read its information.</h5>
+
+                <!-- Card ID Input -->
+                <div class="form-group">
+                    <label for="card-id">Card ID</label>
+                    <input type="text" id="card-id" class="form-control" readonly>
+                    <button id="scan-card-btn" class="btn btn-primary mt-2">Scan Card</button>
+                </div>
+
+                <!-- Assigned Student Information -->
+                <div id="assigned-student-info" class="alert alert-success" style="display: none;">
+                    <strong>Assigned Student:</strong>
+                    <p>Name: <span id="student-name"></span></p>
+                    <p>Classroom: <span id="classroom"></span></p>
+                    <p>Issued Date: <span id="issued-date"></span></p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#scan-card-btn').click(function() {
+            // Clear previous messages
+            $('#card-id-display').hide();
+            $('#assigned-student-info').hide();
+            $('#unassigned-card-message').hide();
+            $('#error-message').hide();
+
+            $.ajax({
+                url: "{% url 'read_card' %}",
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.card_id) {
+                        $('#card-id').val(response.card_id); // Set the card ID in the input field
+                        $('#card-id-text').text(response.card_id); // Display the card ID
+                        $('#card-id-display').show(); // Show the card ID display
+
+                        if (response.assigned) {
+                            $('#student-name').text(response.student_name);
+                            $('#classroom').text(response.classroom);
+                            $('#issued-date').text(response.issued_date);
+                            $('#assigned-student-info').show();
+                        } else {
+                            $('#unassigned-message').text(response.message);
+                            $('#unassigned-card-message').show();
+                        }
+                    } else {
+                        $('#error-text').text(response.error);
+                        $('#error-message').show();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#error-text').text(xhr.responseJSON.error || 'An unknown error occurred.');
+                    $('#error-message').show();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

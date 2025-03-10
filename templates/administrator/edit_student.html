@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Students</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'view_student' %}">Students</a></li>
+                <li class="breadcrumb-item active">Edit Students</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" action="{% url 'update_student' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="form-title"><span>Student Information</span></h5>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Profile Picture</label>
+                                <input type="file" class="form-control" name="profile_pic">
+                                <input type="hidden" class="form-control" name="student_id" value="{{ student.admin.id }}">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input type="text" class="form-control" name="first_name" value="{{ student.admin.first_name }}">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" class="form-control" name="last_name" value="{{ student.admin.last_name }}">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Gender</label>
+                                <select class="form-control" name="gender">
+                                    <option value="Male" {% if student.gender == "Male" %}selected{% endif %}>Male</option>
+                                    <option value="Female" {% if student.gender == "Female" %}selected{% endif %}>Female</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Class</label>
+                                <select class="form-control" name="classroom_id">
+                                    <option>Select Class</option>
+                                    {% for i in classroom %}
+                                    <option value="{{ i.id }}" {% if student.classroom_id.id == i.id %}selected{% endif %}>{{ i.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="text" class="form-control" name="email" value="{{ student.admin.email }}">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" class="form-control" name="username" value="{{ student.admin.username }}">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="text" class="form-control" name="password" placeholder="Fill Only If You Want To Change Password">
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Update Details</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

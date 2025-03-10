@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+   <div class="row align-items-center">
+      <div class="col">
+         <h3 class="page-title">Welcome, Teacher!</h3>
+         <ul class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'teacher_home' %}">Dashboard</a></li>
+         </ul>
+      </div>
+   </div>
+</div>
+
+<div class="row">
+   <div class="col-md-4">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">Profile Picture</h5>
+            <div class="text-center">
+               {% if teacher.admin.profile_pic %}
+                  <img src="{{ teacher.admin.profile_pic.url }}" alt="Profile Picture" class="img-fluid rounded-circle" style="width: 150px; height: 150px;">
+               {% else %}
+                  <div class="avatar-placeholder rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
+                     <i class="fas fa-user fa-3x text-muted"></i>
+                  </div>
+               {% endif %}
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <div class="col-md-8">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">Teacher Information</h5>
+            <div class="table-responsive">
+               <table class="table table-hover">
+                  <tbody>
+                     <tr>
+                        <th>Name</th>
+                        <td>{{ teacher.admin.first_name }} {{ teacher.admin.last_name }}</td>
+                     </tr>
+                     <tr>
+                        <th>Email</th>
+                        <td>{{ teacher.admin.email }}</td>
+                     </tr>
+                     <tr>
+                        <th>Gender</th>
+                        <td>{{ teacher.gender }}</td>
+                     </tr>
+                     <tr>
+                        <th>Classroom</th>
+                        <td>{{ teacher.classroom_id.name }}</td>
+                     </tr>
+                     <tr>
+                        <th>Profile Status</th>
+                        <td>
+                           {% if teacher.admin.profile_pic %}
+                              <span class="badge badge-success">Picture Uploaded</span>
+                           {% else %}
+                              <span class="badge badge-warning">No Picture</span>
+                           {% endif %}
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+   <div class="col-md-12">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">Quick Actions</h5>
+            <div class="row">
+               <div class="col-md-3 mb-3">
+                  <a href="{% url 'teacher_view_student' %}" class="btn btn-primary btn-block">
+                     <i class="fas fa-user-graduate"></i> View Students
+                  </a>
+               </div>
+               <div class="col-md-3 mb-3">
+                  <a href="{% url 'view_exam_result' %}" class="btn btn-primary btn-block">
+                     <i class="fas fa-book-reader"></i> View Exam Results
+                  </a>
+               </div>
+               <div class="col-md-3 mb-3">
+                  <a href="{% url 'teacher_view_attendance' %}" class="btn btn-primary btn-block">
+                     <i class="fas fa-clipboard-list"></i> View Attendance
+                  </a>
+               </div>
+               <div class="col-md-3 mb-3">
+                  <a href="{% url 'view_timetable' %}" class="btn btn-primary btn-block">
+                     <i class="fas fa-calendar-alt"></i> View Timetables
+                  </a>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Classroom Statistics -->
+<div class="row mt-4">
+   <div class="col-md-12">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">Classroom Statistics</h5>
+            <div class="row">
+               <div class="col-md-4 mb-3">
+                  <div class="card bg-light">
+                     <div class="card-body text-center">
+                        <h5 class="card-title">Total Students</h5>
+                        <p class="card-text display-4">{{ total_students }}</p>
+                     </div>
+                  </div>
+               </div>
+               <div class="col-md-4 mb-3">
+                  <div class="card bg-light">
+                     <div class="card-body text-center">
+                        <h5 class="card-title">Present Students</h5>
+                        <p class="card-text display-4">{{ total_present }}</p>
+                     </div>
+                  </div>
+               </div>
+               <div class="col-md-4 mb-3">
+                  <div class="card bg-light">
+                     <div class="card-body text-center">
+                        <h5 class="card-title">Absent Students</h5>
+                        <p class="card-text display-4">{{ total_absent }}</p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+   <div class="row align-items-center">
+      <div class="col">
+         <h3 class="page-title">Welcome, Student!</h3>
+         <ul class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'student_home' %}">Dashboard</a></li>
+         </ul>
+      </div>
+   </div>
+</div>
+
+<!-- Profile Picture and Student Information -->
+<div class="row">
+   <div class="col-md-4">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">Profile Picture</h5>
+            <div class="text-center">
+               {% if student.admin.profile_pic %}
+               <img src="{{ student.admin.profile_pic.url }}" alt="Profile Picture" class="img-fluid rounded-circle"
+                  style="width: 150px; height: 150px;">
+               {% else %}
+               <div class="avatar-placeholder rounded-circle bg-light d-flex align-items-center justify-content-center"
+                  style="width: 150px; height: 150px;">
+                  <i class="fas fa-user fa-3x text-muted"></i>
+               </div>
+               {% endif %}
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <div class="col-md-8">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">Student Information</h5>
+            <div class="table-responsive">
+               <table class="table table-hover">
+                  <tbody>
+                     <tr>
+                        <th>Name</th>
+                        <td>{{ student.admin.first_name }} {{ student.admin.last_name }}</td>
+                     </tr>
+                     <tr>
+                        <th>Email</th>
+                        <td>{{ student.admin.email }}</td>
+                     </tr>
+                     <tr>
+                        <th>Gender</th>
+                        <td>{{ student.gender }}</td>
+                     </tr>
+                     <tr>
+                        <th>Classroom</th>
+                        <td>{{ student.classroom_id.name }}</td>
+                     </tr>
+                     <tr>
+                        <th>Teacher</th>
+                        <td>
+                           {% if teacher %}
+                           {{ teacher.admin.first_name }} {{ teacher.admin.last_name }}
+                           {% else %}
+                           No teacher assigned.
+                           {% endif %}
+                        </td>
+                     </tr>
+                     <tr>
+                        <th>Teacher Email</th>
+                        <td>
+                           {% if teacher %}
+                           {{ teacher.admin.email }}
+                           {% else %}
+                           No teacher assigned.
+                           {% endif %}
+                        </td>
+                     </tr>
+                     <tr>
+                        <th>Profile Status</th>
+                        <td>
+                           {% if student.admin.profile_pic %}
+                           <span class="badge badge-success">Picture Uploaded</span>
+                           {% else %}
+                           <span class="badge badge-warning">No Picture</span>
+                           {% endif %}
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+   <div class="col-md-12">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">Quick Actions</h5>
+            <div class="row">
+               <div class="col-6 col-md-3 mb-2">
+                  <a href="{% url 'student_attendance' %}" class="btn btn-primary btn-block">
+                     <i class="fas fa-clock"></i> Attendance
+                  </a>
+               </div>
+               <div class="col-6 col-md-3 mb-2">
+                  <a href="{% url 'academic_results' %}" class="btn btn-primary btn-block">
+                     <i class="fas fa-book-reader"></i> Exam
+                  </a>
+               </div>
+               <div class="col-6 col-md-3 mb-2">
+                  <a href="{% url 'student_view_timetable' %}" class="btn btn-primary btn-block">
+                     <i class="fas fa-calendar"></i> Timetable
+                  </a>
+               </div>
+               <div class="col-6 col-md-3 mb-2">
+                  <a href="{% url 'view_account_balance' %}" class="btn btn-primary btn-block">
+                     <i class="fas fa-wallet"></i> Balance
+                  </a>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+
+
+<!-- Attendance Summary
+<div class="row mt-4">
+   <div class="col-md-12">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">Attendance Summary</h5>
+            <div class="row">
+               <div class="col-md-4">
+                  <div class="card bg-success text-white text-center">
+                     <div class="card-body">
+                        <h5 class="card-title">Present</h5>
+                        <p class="card-text">25 Days</p>
+                     </div>
+                  </div>
+               </div>
+               <div class="col-md-4">
+                  <div class="card bg-danger text-white text-center">
+                     <div class="card-body">
+                        <h5 class="card-title">Absent</h5>
+                        <p class="card-text">5 Days</p>
+                     </div>
+                  </div>
+               </div>
+               <div class="col-md-4">
+                  <div class="card bg-info text-white text-center">
+                     <div class="card-body">
+                        <h5 class="card-title">Percentage</h5>
+                        <p class="card-text">83%</p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</div> -->
+
+
+<!-- Account Balance Summary
+<div class="row mt-4">
+   <div class="col-md-12">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">Account Balance</h5>
+            <div class="card bg-dark text-white text-center">
+               <div class="card-body">
+                  <h5 class="card-title">Current Balance</h5>
+                  <p class="card-text">${{ balance|default:"0.00" }}</p>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</div> -->
+
+{% endblock %}

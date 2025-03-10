@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Add Exam Result</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'teacher_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Add Exam Result</li>
+            </ul>
+        </div>
+        <div class="col-auto text-right float-right ml-auto">
+            <a href="{% url 'add_exam_title' %}" class="btn btn-outline-primary mr-2"><i class="fas fa-plus"></i> Add
+                Exam Title</a>
+        </div>
+    </div>
+</div>
+{% include 'includes/messages.html' %}
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" action="{% url 'add_exam_result' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="form-title"><span>Exam Result Information</span></h5>
+                        </div>
+
+                        <!-- Exam Title Dropdown -->
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Exam Title</label>
+                                <select class="form-control" name="exam_title_id" required>
+                                    <option>Select Exam Title</option>
+                                    {% for title in exam_titles %}
+                                    <option value="{{ title.id }}">{{ title.title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Student</label>
+                                <select class="form-control" name="student_id" required>
+                                    <option>Select Student</option>
+                                    {% for student in students %}
+                                    <option value="{{ student.id }}">{{ student.admin.first_name }} {{
+                                        student.admin.last_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Subject</label>
+                                <select class="form-control" name="subject_id" required>
+                                    <option>Select Subject</option>
+                                    {% for subject in subjects %}
+                                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                <label>Marks</label>
+                                <input type="number" class="form-control" name="marks" min="0" max="100" required>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Add Exam Result</button>
+                            <a href="{% url 'view_exam_result' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

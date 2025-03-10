@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Assigned Students</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Assigned Students</li>
+            </ul>
+        </div>
+        <div class="col-auto text-right float-right ml-auto">
+            <a href="{% url 'scan_and_assign_card' %}" class="btn btn-outline-primary mr-2"><i class="fas fa-plus"></i> New Scan</a>
+        </div>
+    </div>
+</div>
+{% include 'includes/messages.html' %}
+
+{% for classroom, assigned_cards in assigned_cards_by_classroom.items %}
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Classroom: <strong>{{ classroom.name }}</strong></h5>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Card ID</th>
+                            <th>Student Name</th>
+                            <th>Classroom</th>
+                            <th>Issued Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for card in assigned_cards %}
+                        <tr>
+                            <td>{{ card.card_id }}</td>
+                            <td>{{ card.student.admin.first_name }} {{ card.student.admin.last_name }}</td>
+                            <td>{{ card.student.classroom_id.name }}</td>
+                            <td>{{ card.issued_date|date:"M. j, Y, g:i A" }}</td>
+                            <td>
+                                <a href="{% url 'deactivate_card' card.card_id %}" class="btn btn-sm btn-danger">Deactivate Card</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

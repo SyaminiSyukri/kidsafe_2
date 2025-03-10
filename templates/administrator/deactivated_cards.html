@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Deactivated Cards</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Deactivated Cards</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">List of Deactivated Cards</h5>
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Card ID</th>
+                            <th>Deactivation Reason</th>
+                            <th>Deactivated Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for card in deactivated_cards %}
+                        <tr>
+                            <td>{{ card.card_id }}</td>
+                            <td>{{ card.deactivation_reason|default:"Inactive" }}</td>
+                            <td>{{ card.deactivated_date }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center">No deactivated cards found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
