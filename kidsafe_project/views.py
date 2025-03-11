@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from kidsafe_app.emailbackend import emailbackend
 from django.contrib.auth import authenticate, logout, login
 from django.contrib import messages
@@ -85,3 +85,18 @@ def profile_update(request):
             messages.error(request, 'Failed To Update Your Profile')
 
     return render(request, 'profile.html')
+
+
+@login_required
+def profile_delete(request):
+    user = request.user
+    if user.profile_pic:  # Check if the user has a profile picture
+        user.profile_pic.delete()  # Delete the profile picture file
+        user.profile_pic = ""  # Clear the profile picture field
+        user.save()
+        messages.success(request, 'Profile picture deleted successfully!')
+    else:
+        messages.warning(request, 'No profile picture to delete.')
+    return redirect('profile')  # Redirect back to the profile page
+
+

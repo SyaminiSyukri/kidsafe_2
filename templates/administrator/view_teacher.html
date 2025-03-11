@@ -40,9 +40,9 @@
                                 <!--<td>{{i.id}}</td>-->
                                 <td>
                                     <h2 class="table-avatar">
-                                        <a href="#" class="avatar avatar-sm mr-2"><img class="avatar-img rounded-circle"
+                                        <a class="avatar avatar-sm mr-2"><img class="avatar-img rounded-circle"
                                                 src="/{{i.admin.profile_pic}}" alt=" "></a>
-                                        <a href="#">{{i.admin.first_name}}&nbsp;{{i.admin.last_name}}</a>
+                                        <a>{{i.admin.first_name}}&nbsp;{{i.admin.last_name}}</a>
                                     </h2>
                                 </td>
                                 <td>{{i.classroom_id}}</td>
@@ -56,7 +56,7 @@
                                             class="btn btn-sm bg-success-light mr-2">
                                             <i class="fas fa-pen"></i>
                                         </a>
-                                        <a href="{% url 'delete_teacher' i.admin.id %}" class="btn btn-sm bg-danger" onclick="return confirm('Are you sure you want to delete {{i.admin.first_name}}&nbsp;{{i.admin.last_name}} details?');">
+                                        <a href="{% url 'delete_teacher' i.admin.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete {{i.admin.first_name}}&nbsp;{{i.admin.last_name}} details?');">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </div>

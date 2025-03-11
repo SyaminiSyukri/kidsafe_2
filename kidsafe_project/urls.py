@@ -17,6 +17,8 @@ urlpatterns = [
     #Profile Update
     path('profile', views.profile, name='profile'),
     path('profile/update', views.profile_update, name='profile_update'),
+    path('profile/delete', views.profile_delete, name='profile_delete'),
+    
 
     #Forgot Password
     path('reset-password/', auth_views.PasswordResetView.as_view(
@@ -46,6 +48,7 @@ urlpatterns = [
     path('administrator/teacher/edit/<str:id>', administrator_views.edit_teacher, name='edit_teacher'),
     path('administrator/teacher/update', administrator_views.update_teacher, name='update_teacher'),
     path('administrator/teacher/delete/<str:admin>', administrator_views.delete_teacher, name='delete_teacher'),
+    
 
     path('administrator/canteen/add', administrator_views.add_canteen, name='add_canteen'),
     path('administrator/canteen/view', administrator_views.view_canteen, name='view_canteen'),
