@@ -40,6 +40,9 @@
                         <div class="form-group">
                             <label>Profile Picture</label>
                             <div class="row align-items-center">
+                                <div class="col-md-9">
+                                    <input type="file" class="form-control" name="profile_pic" id="profile_pic">
+                                </div>
                                 <div class="col-md-2">
                                     {% if user.profile_pic == "" or not user.profile_pic %}
                                         <span class="user-img">
@@ -50,9 +53,6 @@
                                             <img src="{{ user.profile_pic.url }}" alt="Profile Picture" class="img-thumbnail" style="max-width: 100; height: auto;">
                                         </span>
                                     {% endif %}
-                                </div>
-                                <div class="col-md-9">
-                                    <input type="file" class="form-control" name="profile_pic" id="profile_pic">
                                 </div>
                                 <div class="col-md-1">
                                     {% if user.profile_pic %}
