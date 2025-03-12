@@ -33,7 +33,11 @@
                         <div class="row align-items-center">
                             <div class="col-auto text-center">
                                 <!-- Larger Profile Picture with Shadow -->
-                                <img id="student-details-profile-pic" src="" alt="Profile Picture" class="rounded-circle shadow-lg" style="width: 120px; height: 120px; border: 3px solid #fff;">
+                                <img id="student-details-profile-pic" 
+                                     src="{% static 'assets/img/noimg.png' %}" 
+                                     alt="Profile Picture" 
+                                     class="rounded-circle shadow-lg" 
+                                     style="width: 120px; height: 120px; border: 3px solid #fff;">
                             </div>
                             <div class="col">
                                 <h4 class="card-title mb-3" id="student-details-name" style="color: #2c3e50;"></h4>
@@ -99,7 +103,12 @@
                             success: function(response) {
                                 if (response.success) {
                                     // Update student details card content
-                                    $('#student-details-profile-pic').attr('src', response.profile_pic);
+                                    if (response.profile_pic) {
+                                        $('#student-details-profile-pic').attr('src', response.profile_pic);
+                                    } else {
+                                        // Use the default image if no profile picture is available
+                                        $('#student-details-profile-pic').attr('src', "{% static 'assets/img/noimg.png' %}");
+                                    }
                                     $('#student-details-name').text(response.student_name);
                                     $('#student-details-classroom').text(response.classroom);
                                     $('#student-details-gender').text(response.gender);

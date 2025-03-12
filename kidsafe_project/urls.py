@@ -17,7 +17,7 @@ urlpatterns = [
     #Profile Update
     path('profile', views.profile, name='profile'),
     path('profile/update', views.profile_update, name='profile_update'),
-    path('profile/delete', views.profile_delete, name='profile_delete'),
+    path('profile/delete/<int:user_id>/', views.profile_delete, name='profile_delete'),
     
 
     #Forgot Password

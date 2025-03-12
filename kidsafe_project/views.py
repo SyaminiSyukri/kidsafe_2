@@ -88,15 +88,26 @@ def profile_update(request):
 
 
 @login_required
-def profile_delete(request):
-    user = request.user
-    if user.profile_pic:  # Check if the user has a profile picture
-        user.profile_pic.delete()  # Delete the profile picture file
+def profile_delete(request, user_id):
+    # Fetch the user whose profile picture is being deleted
+    user = get_object_or_404(CustomUser, id=user_id)
+
+    # Delete the profile picture if it exists
+    if user.profile_pic:
+        user.profile_pic.delete()  # Delete the file from storage
         user.profile_pic = ""  # Clear the profile picture field
         user.save()
         messages.success(request, 'Profile picture deleted successfully!')
     else:
         messages.warning(request, 'No profile picture to delete.')
-    return redirect('profile')  # Redirect back to the profile page
 
+    # Redirect back to the edit page
+    if user.user_type == '2':  # Teacher
+        return redirect('edit_teacher', id=user.teacher.id)
+    elif user.user_type == '3':  # Student
+        return redirect('edit_student', id=user.student.id)
+    elif user.user_type == '4':  # Canteen
+        return redirect('edit_canteen', id=user.canteen.id)
+    else:
+        return redirect('profile')  # Fallback for other user types
 

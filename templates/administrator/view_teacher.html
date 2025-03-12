@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 
 <div class="page-header">
@@ -40,8 +41,13 @@
                                 <!--<td>{{i.id}}</td>-->
                                 <td>
                                     <h2 class="table-avatar">
-                                        <a class="avatar avatar-sm mr-2"><img class="avatar-img rounded-circle"
-                                                src="/{{i.admin.profile_pic}}" alt=" "></a>
+                                        <a class="avatar avatar-sm mr-2">
+                                            {% if i.admin.profile_pic == "" or not i.admin.profile_pic %}
+                                                <img class="avatar-img rounded-circle" src="{% static 'assets/img/noimg.png' %}" alt="No Profile Picture">
+                                            {% else %}
+                                                <img class="avatar-img rounded-circle" src="/{{i.admin.profile_pic}}" alt="Profile Picture">
+                                            {% endif %}
+                                        </a>
                                         <a>{{i.admin.first_name}}&nbsp;{{i.admin.last_name}}</a>
                                     </h2>
                                 </td>
@@ -52,8 +58,7 @@
                                 <td>{{i.updated_at}}</td>
                                 <td class="text-right">
                                     <div class="actions">
-                                        <a href="{% url 'edit_teacher' i.id %}"
-                                            class="btn btn-sm bg-success-light mr-2">
+                                        <a href="{% url 'edit_teacher' i.id %}" class="btn btn-sm bg-success-light mr-2">
                                             <i class="fas fa-pen"></i>
                                         </a>
                                         <a href="{% url 'delete_teacher' i.admin.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete {{i.admin.first_name}}&nbsp;{{i.admin.last_name}} details?');">

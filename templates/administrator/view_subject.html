@@ -43,7 +43,7 @@
                                         <a href="{% url 'edit_subject' subject.id %}" class="btn btn-sm bg-success-light mr-2">
                                             <i class="fas fa-pen"></i>
                                         </a>
-                                        <a href="{% url 'delete_subject' subject.id %}" class="btn btn-sm bg-danger" onclick="return confirm('Are you sure you want to delete {{ subject.name }} subject?');">
+                                        <a href="{% url 'delete_subject' subject.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete {{ subject.name }} subject?');">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </div>

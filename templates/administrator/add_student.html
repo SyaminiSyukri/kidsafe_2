@@ -11,9 +11,6 @@
                 <li class="breadcrumb-item active">Add Student</li>
             </ul>
         </div>
-        <div class="col-auto text-right float-right ml-auto">
-            <a href="{% url 'view_student' %}" class="btn btn-outline-primary mr-2"><i class="fas fa-times"></i> Cancel</a>
-        </div>
     </div>
 </div>
 
@@ -98,6 +95,7 @@
 
                         <div class="col-12">
                             <button type="submit" class="btn btn-primary">Add Student</button>
+                            <a href="{% url 'view_student' %}" class="btn btn-secondary">Cancel</a>
                         </div>
 
                     </div>

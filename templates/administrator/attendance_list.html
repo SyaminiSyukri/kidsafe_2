@@ -42,21 +42,21 @@
                     {% for classroom, records in classroom_attendance.items %}
                     <br>
                     <h6><strong>Classroom: {{ classroom }}</strong></h6> <!-- Display classroom name -->
-                    <table class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover" style="table-layout: fixed; width: 100%;">
                         <thead>
                             <tr>
-                                <th>Student Name</th>
-                                <th>Arrival Time</th>
-                                <th>Departure Time</th>
+                                <th style="width: 40%;">Student Name</th>
+                                <th style="width: 30%;">Arrival Time</th>
+                                <th style="width: 30%;">Departure Time</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% if records %}
                                 {% for record in records %}
                                 <tr>
-                                    <td>{{ record.student.admin.first_name }} {{ record.student.admin.last_name }}</td>
-                                    <td>{{ record.arrival_time }}</td>
-                                    <td>{{ record.departure_time|default:"Still in class" }}</td>
+                                    <td style="width: 40%;">{{ record.student.admin.first_name }} {{ record.student.admin.last_name }}</td>
+                                    <td style="width: 30%;">{{ record.arrival_time }}</td>
+                                    <td style="width: 30%;">{{ record.departure_time|default:"Still in class" }}</td>
                                 </tr>
                                 {% endfor %}
                             {% else %}
@@ -85,5 +85,14 @@
         window.location.href = "{% url 'attendance_list' %}";
     });
 </script>
+
+<!--<style>
+    /* Ensure table cells do not overflow */
+    table td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>-->
 
 {% endblock %}

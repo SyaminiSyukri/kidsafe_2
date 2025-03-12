@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% block content %} 
+{% load static %}
+{% block content %}
 
 <div class="page-header">
     <div class="row align-items-center">
@@ -41,8 +42,13 @@
                             <tr>
                                 <td>
                                     <h2 class="table-avatar">
-                                        <a class="avatar avatar-sm mr-2"><img class="avatar-img rounded-circle"
-                                                src="/{{ student.admin.profile_pic }}" alt=" "></a>
+                                        <a class="avatar avatar-sm mr-2">
+                                            {% if student.admin.profile_pic == "" or not student.admin.profile_pic %}
+                                                <img class="avatar-img rounded-circle" src="{% static 'assets/img/noimg.png' %}" alt="No Profile Picture">
+                                            {% else %}
+                                                <img class="avatar-img rounded-circle" src="/{{ student.admin.profile_pic }}" alt="Profile Picture">
+                                            {% endif %}
+                                        </a>
                                         <a>{{ student.admin.first_name }}&nbsp;{{ student.admin.last_name }}</a>
                                     </h2>
                                 </td>
@@ -53,11 +59,10 @@
                                 <td>{{ student.updated_at }}</td>
                                 <td class="text-right">
                                     <div class="actions">
-                                        <a href="{% url 'edit_student' student.id %}"
-                                            class="btn btn-sm bg-success-light mr-2">
+                                        <a href="{% url 'edit_student' student.id %}" class="btn btn-sm bg-success-light mr-2">
                                             <i class="fas fa-pen"></i>
                                         </a>
-                                        <a href="{% url 'delete_student' student.admin.id %}" class="btn btn-sm bg-danger" onclick="return confirm('Are you sure you want to delete {{ student.admin.first_name }}&nbsp;{{ student.admin.last_name }} details?');">
+                                        <a href="{% url 'delete_student' student.admin.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete {{ student.admin.first_name }}&nbsp;{{ student.admin.last_name }} details?');">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </div>

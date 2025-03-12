@@ -36,7 +36,7 @@
                     {% endif %}
                     {% endfor %}
                     {% endif %}
-                    <div class="col-sm-12">
+                    <div class="col-12">
                         <div class="form-group">
                             <label>Profile Picture</label>
                             <div class="row align-items-center">
@@ -56,7 +56,7 @@
                                 </div>
                                 <div class="col-md-1">
                                     {% if user.profile_pic %}
-                                        <a href="{% url 'profile_delete' %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete your profile picture?');">
+                                        <a href="{% url 'profile_delete' user.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete your profile picture?');">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     {% endif %}

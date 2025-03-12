@@ -21,12 +21,18 @@ def home(request):
     teacher_count = Teacher.objects.all().count()
     canteen_count = Canteen.objects.all().count()
 
-    # Calculate total present students (students who have scanned their attendance today)
+    # Calculate total present students (students who have scanned in today and not yet scanned out)
     today = timezone.now().date()
-    total_present_students = Attendance.objects.filter(
-        arrival_time__date=today,
-        departure_time__isnull=True  # Students who are still in school
-    ).count()
+    present_students_query = Attendance.objects.filter(
+        arrival_time__date=today,  # Students who have scanned in today
+        departure_time__isnull=True  # Students who have not yet scanned out
+    ).values('student').distinct()
+
+    # Debug: Print the query and count
+    print("Present Students Query:", present_students_query.query)
+    print("Present Students Count:", present_students_query.count())
+
+    total_present_students = present_students_query.count()
 
     # Calculate card statistics
     total_registered_cards = Card.objects.all().count()
@@ -131,7 +137,6 @@ def edit_student(request, id):
 def update_student(request):
     if request.method == "POST":
         student_id = request.POST.get('student_id')
-        print(student_id)
         profile_pic = request.FILES.get('profile_pic')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
@@ -141,29 +146,28 @@ def update_student(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        user = CustomUser.objects.get(id = student_id)
-        user.first_name  = first_name
+        user = CustomUser.objects.get(id=student_id)
+        user.first_name = first_name
         user.last_name = last_name
         user.email = email
         user.username = username
 
-        if password !=None and password != "":
+        if password != None and password != "":
             user.set_password(password)
 
-        if profile_pic !=None and profile_pic != "":
-            user.profile_pic = profile_pic 
+        if profile_pic != None and profile_pic != "":
+            user.profile_pic = profile_pic
         user.save()
 
-        student = Student.objects.get(admin = student_id)
+        student = Student.objects.get(admin=student_id)
         student.gender = gender
 
-        classroom = Classroom.objects.get(id = classroom_id)
+        classroom = Classroom.objects.get(id=classroom_id)
         student.classroom_id = classroom
 
         student.save()
-        messages.success(request, 'Record Are Successfully Updated!')
+        messages.success(request, f'{user.first_name} {user.last_name}\'s record has been successfully updated!')
         return redirect('view_student')
-
 
     return render(request, 'administrator/edit_student.html')
 
@@ -191,7 +195,7 @@ def add_subject(request):
             teacher=teacher,
         )
         subject.save()
-        messages.success(request, 'Subject Added Successfully!')
+        messages.success(request, f'{subject.name} Subject Added Successfully!')
         return redirect('view_subject')
 
     context = {
@@ -221,7 +225,7 @@ def edit_subject(request, id):
         subject.name = subject_name
         subject.teacher = teacher
         subject.save()
-        messages.success(request, 'Subject Updated Successfully!')
+        messages.success(request, f'{subject.name} subject updated successfully!')
         return redirect('view_subject')
 
     context = {
@@ -234,7 +238,7 @@ def edit_subject(request, id):
 def delete_subject(request, id):
     subject = get_object_or_404(Subject, id=id)
     subject.delete()
-    messages.success(request, 'Subject Deleted Successfully!')
+    messages.success(request, f'{subject.name} Subject Deleted Successfully!')
     return redirect('view_subject')
 
 
@@ -324,29 +328,28 @@ def update_teacher(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        user = CustomUser.objects.get(id = teacher_id)
-        user.first_name  = first_name
+        user = CustomUser.objects.get(id=teacher_id)
+        user.first_name = first_name
         user.last_name = last_name
         user.email = email
         user.username = username
 
-        if password !=None and password != "":
+        if password != None and password != "":
             user.set_password(password)
 
-        if profile_pic !=None and profile_pic != "":
-            user.profile_pic = profile_pic 
+        if profile_pic != None and profile_pic != "":
+            user.profile_pic = profile_pic
         user.save()
 
-        teacher = Teacher.objects.get(admin = teacher_id)
+        teacher = Teacher.objects.get(admin=teacher_id)
         teacher.gender = gender
 
-        classroom = Classroom.objects.get(id = classroom_id)
+        classroom = Classroom.objects.get(id=classroom_id)
         teacher.classroom_id = classroom
 
         teacher.save()
-        messages.success(request, 'Record Are Successfully Updated!')
+        messages.success(request, f'{user.first_name} {user.last_name}\'s record has been successfully updated!')
         return redirect('view_teacher')
-
 
     return render(request, 'administrator/edit_teacher.html')
 
@@ -411,19 +414,17 @@ def view_canteen(request):
     return render(request, 'administrator/view_canteen.html', context)
 
 @login_required(login_url='/')
-def edit_canteen(request,id):
-    canteen = Canteen.objects.filter(id=id)
-
+def edit_canteen(request, id):
+    canteen = get_object_or_404(Canteen, id=id)
     context = {
-        'canteen':canteen,
+        'canteen': canteen,
     }
-    return render(request, 'administrator/edit_canteen.html', context)
+    return render(request, 'administrator/edit_canteen.html', context)      
 
 @login_required(login_url='/')
 def update_canteen(request):
     if request.method == "POST":
         canteen_id = request.POST.get('canteen_id')
-        print(canteen_id)
         profile_pic = request.FILES.get('profile_pic')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
@@ -431,25 +432,23 @@ def update_canteen(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        user = CustomUser.objects.get(id = canteen_id)
-        user.first_name  = first_name
+        user = CustomUser.objects.get(id=canteen_id)
+        user.first_name = first_name
         user.last_name = last_name
         user.email = email
         user.username = username
 
-        if password !=None and password != "":
+        if password != None and password != "":
             user.set_password(password)
 
-        if profile_pic !=None and profile_pic != "":
-            user.profile_pic = profile_pic 
+        if profile_pic != None and profile_pic != "":
+            user.profile_pic = profile_pic
         user.save()
 
-        canteen = Canteen.objects.get(admin = canteen_id)
-
+        canteen = Canteen.objects.get(admin=canteen_id)
         canteen.save()
-        messages.success(request, 'Record Are Successfully Updated!')
+        messages.success(request, f'{user.first_name} {user.last_name}\'s record has been successfully updated!')
         return redirect('view_canteen')
-
 
     return render(request, 'administrator/edit_canteen.html')
 
@@ -628,6 +627,8 @@ def assigned_students(request):
     }
     return render(request, 'administrator/assigned_students.html', context)
 
+from django.utils import timezone
+
 @login_required(login_url='/')
 def scan_attendance(request):
     if request.method == 'POST':
@@ -637,20 +638,23 @@ def scan_attendance(request):
             # Check if the card is registered and active
             card = Card.objects.get(card_id=card_id)
             if not card.is_active:
-                return JsonResponse({'error': 'This card is not yet assign and cannot be used for attendance.'}, status=400)
+                return JsonResponse({'error': 'This card is not yet assigned and cannot be used for attendance.'}, status=400)
 
             student = card.student
-
-            #if not student:
-                #return JsonResponse({'error': 'Card is not assigned to any student.'}, status=400)
 
             # Check if the student has an open attendance record (no departure time)
             attendance = Attendance.objects.filter(student=student, departure_time__isnull=True).last()
 
             if attendance:
                 # Update departure time (second scan)
-                attendance.departure_time = datetime.now()
+                attendance.departure_time = timezone.now()
                 attendance.save()
+
+                # Convert UTC times to local timezone
+                local_tz = timezone.get_current_timezone()
+                arrival_time_local = timezone.localtime(attendance.arrival_time, timezone=local_tz)
+                departure_time_local = timezone.localtime(attendance.departure_time, timezone=local_tz)
+
                 return JsonResponse({
                     'success': True,
                     'message': f'{student.admin.first_name} {student.admin.last_name} has left.',
@@ -659,13 +663,18 @@ def scan_attendance(request):
                     'gender': student.gender,
                     'email': student.admin.email,
                     'profile_pic': student.admin.profile_pic.url if student.admin.profile_pic else '',
-                    'arrival_time': attendance.arrival_time.strftime('%Y-%m-%d %H:%M:%S'),
-                    'departure_time': attendance.departure_time.strftime('%Y-%m-%d %H:%M:%S') if attendance.departure_time else 'Still in school'
+                    'arrival_time': arrival_time_local.strftime('%d-%m-%Y %H:%M:%S'),
+                    'departure_time': departure_time_local.strftime('%d-%m-%Y %H:%M:%S'),
                 })
             else:
                 # Create a new arrival record (first scan)
                 attendance = Attendance(student=student)
                 attendance.save()
+
+                # Convert UTC arrival time to local timezone
+                local_tz = timezone.get_current_timezone()
+                arrival_time_local = timezone.localtime(attendance.arrival_time, timezone=local_tz)
+
                 return JsonResponse({
                     'success': True,
                     'message': f'{student.admin.first_name} {student.admin.last_name} has arrived.',
@@ -674,8 +683,8 @@ def scan_attendance(request):
                     'gender': student.gender,
                     'email': student.admin.email,
                     'profile_pic': student.admin.profile_pic.url if student.admin.profile_pic else '',
-                    'arrival_time': attendance.arrival_time.strftime('%Y-%m-%d %H:%M:%S'),
-                    'departure_time': 'Still in school'
+                    'arrival_time': arrival_time_local.strftime('%d-%m-%Y %H:%M:%S'),
+                    'departure_time': 'Still in school',
                 })
 
         except Card.DoesNotExist:
