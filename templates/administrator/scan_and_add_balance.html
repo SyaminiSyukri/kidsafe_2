@@ -16,7 +16,7 @@
 
 <!-- Success Message -->
 <div id="success-message" class="alert alert-success mt-3" style="display: none;">
-    <strong>Success:</strong> <span id="success-text"></span>
+    <span id="success-text"></span>
 </div>
 
 <div class="row">
@@ -94,7 +94,7 @@
                                         $('#current-balance').val(balanceResponse.current_balance);
                                         $('#status-message').removeClass('alert-danger').addClass('alert-info').text(`Card assigned to ${balanceResponse.student_name}`).show();
                                     } else {
-                                        $('#status-message').removeClass('alert-info').addClass('alert-danger').text('Error: ' + balanceResponse.error).show();
+                                        $('#status-message').removeClass('alert-info').addClass('alert-danger').text(balanceResponse.error).show();
                                     }
                                 },
                                 error: function (xhr) {
@@ -152,12 +152,12 @@
                 success: function (response) {
                     if (response.success) {
                         // Show success message and update the current balance
-                        $('#success-text').text(response.message);
+                        $('#success-text').text(response.message); // Set the dynamic message
                         $('#success-message').show();
                         $('#current-balance').val(response.new_balance);
                         $('#status-message').hide();
                     } else {
-                        $('#status-message').removeClass('alert-info').addClass('alert-danger').text('Error: ' + response.error).show();
+                        $('#status-message').removeClass('alert-info').addClass('alert-danger').text(response.error).show();
                     }
                 },
                 error: function (xhr) {

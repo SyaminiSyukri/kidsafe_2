@@ -21,18 +21,12 @@ def home(request):
     teacher_count = Teacher.objects.all().count()
     canteen_count = Canteen.objects.all().count()
 
-    # Calculate total present students (students who have scanned in today and not yet scanned out)
+    # Calculate total present students (students who have scanned their attendance today)
     today = timezone.now().date()
-    present_students_query = Attendance.objects.filter(
-        arrival_time__date=today,  # Students who have scanned in today
-        departure_time__isnull=True  # Students who have not yet scanned out
-    ).values('student').distinct()
-
-    # Debug: Print the query and count
-    print("Present Students Query:", present_students_query.query)
-    print("Present Students Count:", present_students_query.count())
-
-    total_present_students = present_students_query.count()
+    total_present_students = Attendance.objects.filter(
+        arrival_time__date=today,
+        departure_time__isnull=True  # Students who are still in school
+    ).count()
 
     # Calculate card statistics
     total_registered_cards = Card.objects.all().count()
@@ -627,7 +621,6 @@ def assigned_students(request):
     }
     return render(request, 'administrator/assigned_students.html', context)
 
-from django.utils import timezone
 
 @login_required(login_url='/')
 def scan_attendance(request):
@@ -647,7 +640,7 @@ def scan_attendance(request):
 
             if attendance:
                 # Update departure time (second scan)
-                attendance.departure_time = timezone.now()
+                attendance.departure_time = timezone.now()  # Use timezone.now() instead of datetime.now()
                 attendance.save()
 
                 # Convert UTC times to local timezone
@@ -663,12 +656,12 @@ def scan_attendance(request):
                     'gender': student.gender,
                     'email': student.admin.email,
                     'profile_pic': student.admin.profile_pic.url if student.admin.profile_pic else '',
-                    'arrival_time': arrival_time_local.strftime('%d-%m-%Y %H:%M:%S'),
-                    'departure_time': departure_time_local.strftime('%d-%m-%Y %H:%M:%S'),
+                    'arrival_time': arrival_time_local.strftime('%Y-%m-%d %H:%M:%S'),
+                    'departure_time': departure_time_local.strftime('%Y-%m-%d %H:%M:%S'),
                 })
             else:
                 # Create a new arrival record (first scan)
-                attendance = Attendance(student=student)
+                attendance = Attendance(student=student, arrival_time=timezone.now())  # Use timezone.now() for arrival_time
                 attendance.save()
 
                 # Convert UTC arrival time to local timezone
@@ -683,7 +676,7 @@ def scan_attendance(request):
                     'gender': student.gender,
                     'email': student.admin.email,
                     'profile_pic': student.admin.profile_pic.url if student.admin.profile_pic else '',
-                    'arrival_time': arrival_time_local.strftime('%d-%m-%Y %H:%M:%S'),
+                    'arrival_time': arrival_time_local.strftime('%Y-%m-%d %H:%M:%S'),
                     'departure_time': 'Still in school',
                 })
 
@@ -695,7 +688,6 @@ def scan_attendance(request):
     # Render the attendance page for GET requests
     attendance_records = Attendance.objects.all().order_by('-arrival_time')
     return render(request, 'administrator/student_attendance.html', {'attendance_records': attendance_records})
-
 
 def attendance_list(request):
     search_query = request.GET.get('search', '')
@@ -810,7 +802,7 @@ def scan_and_add_balance(request):
 
                 return JsonResponse({
                     'success': True,
-                    'message': f'Successfully added {amount} to {card.student.admin.first_name} {card.student.admin.last_name}\'s account.',
+                    'message': f'Successfully added ${amount} to {card.student.admin.first_name} {card.student.admin.last_name}\'s account.',
                     'new_balance': str(student_account.balance)  # Convert Decimal to string for JSON serialization
                 })
             else:
