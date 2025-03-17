@@ -248,8 +248,7 @@ def add_exam_result(request):
         ).exists():
             # Create a descriptive error message
             error_message = (
-                f"{student.admin.first_name} {student.admin.last_name} has already taken "
-                f"{subject.name} for '{exam_title.title}'."
+                f"{student.admin.first_name} {student.admin.last_name}'s {subject.name} results have been taken for {exam_title.title}"
             )
             messages.warning(request, error_message)
             return redirect('add_exam_result')
