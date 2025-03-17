@@ -45,19 +45,33 @@ def home(request):
 
 @login_required(login_url='/')
 def view_student(request):
-    #if request.user.user_type == 2:  # Check if the user is a teacher
-        #return redirect('login')  # Redirect to login if not a teacher
-
     teacher = Teacher.objects.get(admin=request.user)
     classroom = teacher.classroom_id
+
+    # Get the search query from the request
+    search_query = request.GET.get('search', '')
+
+    # Fetch students in the teacher's classroom
     students = Student.objects.filter(classroom_id=classroom)
+
+    # Apply search filter (by student name)
+    if search_query:
+        students = students.filter(
+            admin__first_name__icontains=search_query
+        ) | students.filter(
+            admin__last_name__icontains=search_query
+        )
+
+    # Add a warning message if no students are found
+    if search_query and not students.exists():
+        messages.warning(request, f'No students found: {search_query}')
 
     context = {
         'teacher': teacher,
         'classroom': classroom,
         'students': students,
+        'search_query': search_query,  # Pass the search query to the template
     }
-
     return render(request, 'teacher/view_student.html', context)
 
 
@@ -81,7 +95,7 @@ def add_student(request):
         
         if CustomUser.objects.filter(username=username).exists():
             messages.warning(request, 'Username Is Already Taken')
-            return redirect('teacher_add_student')
+            return redirect('teacher_add_student') 
         
         else:
             user = CustomUser(
@@ -154,7 +168,8 @@ def update_student(request):
         student.classroom_id = classroom
         student.save()
 
-        messages.success(request, 'Student Record Successfully Updated!')
+        # Include the student's name in the success message
+        messages.success(request, f'{user.first_name} {user.last_name}\'s record has been successfully updated!')
         return redirect('teacher_view_student')
 
     return redirect('teacher_view_student')
@@ -164,8 +179,10 @@ def update_student(request):
 def delete_student(request, admin):
     student = get_object_or_404(Student, admin_id=admin, classroom_id=request.user.teacher.classroom_id)
     user = student.admin
+
+    # Include the student's name in the delete confirmation message
+    messages.success(request, f'{user.first_name} {user.last_name}\'s record has been successfully deleted!')
     user.delete()
-    messages.success(request, 'Student Record Successfully Deleted!')
     return redirect('teacher_view_student')
 
 
@@ -218,18 +235,40 @@ def add_exam_result(request):
             messages.warning(request, 'Marks must be between 0 and 100.')
             return redirect('add_exam_result')
 
-        exam_title = ExamTitle.objects.get(id=exam_title_id)
+        # Fetch the student, subject, and exam title objects
         student = Student.objects.get(id=student_id)
         subject = Subject.objects.get(id=subject_id)
+        exam_title = ExamTitle.objects.get(id=exam_title_id)
 
+        # Check if the student has already taken this subject for the selected exam title
+        if ExamResult.objects.filter(
+            exam_title_id=exam_title_id,
+            student_id=student_id,
+            subject_id=subject_id
+        ).exists():
+            # Create a descriptive error message
+            error_message = (
+                f"{student.admin.first_name} {student.admin.last_name} has already taken "
+                f"{subject.name} for '{exam_title.title}'."
+            )
+            messages.warning(request, error_message)
+            return redirect('add_exam_result')
+
+        # Save the exam result
         exam_result = ExamResult(
-            exam_title=exam_title,  # Link to the exam title
-            student=student,
-            subject=subject,
+            exam_title_id=exam_title_id,
+            student_id=student_id,
+            subject_id=subject_id,
             marks=marks,
         )
         exam_result.save()
-        messages.success(request, 'Exam Result Added Successfully!')
+
+        # Create a descriptive success message
+        success_message = (
+            f"Exam result for {student.admin.first_name} {student.admin.last_name} "
+            f"in {subject.name} has been added successfully!"
+        )
+        messages.success(request, success_message)
         return redirect('view_exam_result')
 
     context = {

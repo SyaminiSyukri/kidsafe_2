@@ -1,4 +1,103 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
+<div class="page-header">
+   <div class="row align-items-center">
+      <div class="col">
+         <h3 class="page-title">Welcome, Canteen Staff!</h3>
+         <ul class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'canteen_home' %}">Dashboard</a></li>
+         </ul>
+      </div>
+   </div>
+</div>
+
+<!-- Profile Picture and Canteen Staff Information -->
+<div class="row">
+   <div class="col-md-4">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">Profile Picture</h5>
+            <div class="text-center">
+               {% if canteen.admin.profile_pic %}
+               <img src="{{ canteen.admin.profile_pic.url }}" alt="Profile Picture" class="img-fluid rounded-circle"
+                  style="width: 150px; height: 150px;">
+               {% else %}
+               <div class="avatar-placeholder rounded-circle bg-light d-flex align-items-center justify-content-center"
+                  style="width: 150px; height: 150px;">
+                  <i class="fas fa-user fa-3x text-muted"></i>
+               </div>
+               {% endif %}
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <div class="col-md-8">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">Canteen Staff Information</h5>
+            <div class="table-responsive">
+               <table class="table table-hover">
+                  <tbody>
+                     <tr>
+                        <th>Name</th>
+                        <td>{{ canteen.admin.first_name }} {{ canteen.admin.last_name }}</td>
+                     </tr>
+                     <tr>
+                        <th>Email</th>
+                        <td>{{ canteen.admin.email }}</td>
+                     </tr>
+                     <tr>
+                        <th>Profile Status</th>
+                        <td>
+                           {% if canteen.admin.profile_pic %}
+                           <span class="badge badge-success">Picture Uploaded</span>
+                           {% else %}
+                           <span class="badge badge-warning">No Picture</span>
+                           {% endif %}
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+   <div class="col-md-12">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">Quick Actions</h5>
+            <div class="row">
+               <div class="col-6 col-md-3 mb-2">
+                  <a href="{% url 'inventory_management' %}" class="btn btn-primary btn-block">
+                     <i class="fas fa-boxes"></i> Inventory
+                  </a>
+               </div>
+               <div class="col-6 col-md-3 mb-2">
+                  <a href="{% url 'process_payment' %}" class="btn btn-primary btn-block">
+                     <i class="fas fa-cash-register"></i> Payments
+                  </a>
+               </div>
+               <div class="col-6 col-md-3 mb-2">
+                  <a href="#" class="btn btn-primary btn-block">
+                     <i class="fas fa-chart-line"></i> Reports
+                  </a>
+               </div>
+               <div class="col-6 col-md-3 mb-2">
+                  <a href="#" class="btn btn-primary btn-block">
+                     <i class="fas fa-cog"></i> Settings
+                  </a>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
 
 {% endblock %}

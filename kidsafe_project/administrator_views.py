@@ -103,16 +103,31 @@ def view_student(request):
     # Fetch all classrooms
     classrooms = Classroom.objects.all()
     
+    # Get the search query from the request
+    search_query = request.GET.get('search', '')
+
     # Create a dictionary to hold students grouped by classroom
     students_by_classroom = {}
     
     for classroom in classrooms:
+        # Filter students by classroom and search query
         students = Student.objects.filter(classroom_id=classroom)
+        if search_query:
+            students = students.filter(
+                admin__first_name__icontains=search_query
+            ) | students.filter(
+                admin__last_name__icontains=search_query
+            )
         if students.exists():
             students_by_classroom[classroom] = students
     
+    # Add a warning message if no students are found
+    if search_query and not students_by_classroom:
+        messages.warning(request, f'No students found: {search_query}')
+
     context = {
         'students_by_classroom': students_by_classroom,
+        'search_query': search_query,  # Pass the search query to the template
     }
     return render(request, 'administrator/view_student.html', context)
 
@@ -606,18 +621,35 @@ def get_students_by_classroom(request):
 def assigned_students(request):
     # Fetch all classrooms
     classrooms = Classroom.objects.all()
-    
+
+    # Get the search query from the request
+    search_query = request.GET.get('search', '')
+
     # Create a dictionary to hold assigned cards grouped by classroom
     assigned_cards_by_classroom = {}
-    
+
     for classroom in classrooms:
         # Fetch assigned cards for students in this classroom
         assigned_cards = Card.objects.filter(student__classroom_id=classroom, is_active=True).select_related('student')
+        
+        # Filter by student name if a search query is provided
+        if search_query:
+            assigned_cards = assigned_cards.filter(
+                student__admin__first_name__icontains=search_query
+            ) | assigned_cards.filter(
+                student__admin__last_name__icontains=search_query
+            )
+
         if assigned_cards.exists():
             assigned_cards_by_classroom[classroom] = assigned_cards
-    
+
+    # Add a warning message if no assigned students are found
+    if search_query and not assigned_cards_by_classroom:
+        messages.warning(request, f'No students found: {search_query}')
+
     context = {
         'assigned_cards_by_classroom': assigned_cards_by_classroom,
+        'search_query': search_query,  # Pass the search query to the template
     }
     return render(request, 'administrator/assigned_students.html', context)
 

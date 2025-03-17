@@ -89,6 +89,11 @@ def profile_update(request):
 
 @login_required
 def profile_delete(request, user_id):
+    # Ensure the user is deleting their own profile picture or has permission
+    if request.user.user_type not in ['1', '2']:  # Only admin (1) and teacher (2) can delete
+        messages.error(request, 'You do not have permission to delete this profile picture.')
+        return redirect('profile')
+
     # Fetch the user whose profile picture is being deleted
     user = get_object_or_404(CustomUser, id=user_id)
 
@@ -101,13 +106,11 @@ def profile_delete(request, user_id):
     else:
         messages.warning(request, 'No profile picture to delete.')
 
-    # Redirect back to the edit page
-    if user.user_type == '2':  # Teacher
-        return redirect('edit_teacher', id=user.teacher.id)
-    elif user.user_type == '3':  # Student
+    # Redirect back to the appropriate page based on user type
+    if request.user.user_type == '1':  # Admin
         return redirect('edit_student', id=user.student.id)
-    elif user.user_type == '4':  # Canteen
-        return redirect('edit_canteen', id=user.canteen.id)
+    elif request.user.user_type == '2':  # Teacher
+        return redirect('profile')
     else:
         return redirect('profile')  # Fallback for other user types
 

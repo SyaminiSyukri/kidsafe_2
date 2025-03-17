@@ -22,17 +22,17 @@
                 <table class="table table-bordered table-hover">
                     <thead>
                         <tr>
-                            <th>Card ID</th>
-                            <th>Deactivation Reason</th>
-                            <th>Deactivated Date</th>
+                            <th style="width: 30%;">Card ID</th>
+                            <th style="width: 40%;">Description</th>
+                            <th style="width: 30%;">Deactivated Date</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for card in deactivated_cards %}
                         <tr>
-                            <td>{{ card.card_id }}</td>
-                            <td>{{ card.deactivation_reason|default:"Inactive" }}</td>
-                            <td>{{ card.deactivated_date }}</td>
+                            <td style="width: 30%;">{{ card.card_id }}</td>
+                            <td style="width: 40%;">{{ card.deactivation_reason|default:"Inactive" }}</td>
+                            <td style="width: 30%;">{{ card.deactivated_date }}</td>
                         </tr>
                         {% empty %}
                         <tr>

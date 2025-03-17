@@ -48,8 +48,14 @@
                     </select>
                 </div>
 
+                <!-- Unassigned Card Message -->
+                <div id="unassigned-card-message" class="alert alert-warning mt-3" style="display: none;">
+                    <span id="unassigned-message"></span>
+                </div>
+
                 <!-- Assign Button -->
                 <button type="button" class="btn btn-primary" id="assign-card-btn">Assign Student to Card</button>
+                <a href="{% url 'scan_and_assign_card' %}" class="btn btn-secondary"><i class="fas fa-sync-alt"></i></a>
 
                 <!-- Assigned Student Information -->
                 <div id="assigned-student-info" class="alert alert-success mt-3" style="display: none;">
@@ -57,11 +63,6 @@
                     <p>Name: <span id="student-name"></span></p>
                     <p>Classroom: <span id="classroom"></span></p>
                     <p>Issued Date: <span id="issued-date"></span></p>
-                </div>
-
-                <!-- Unassigned Card Message -->
-                <div id="unassigned-card-message" class="alert alert-warning mt-3" style="display: none;">
-                    <span id="unassigned-message"></span>
                 </div>
 
                 <!-- Assigned Card Message -->

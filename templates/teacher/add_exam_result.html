@@ -11,8 +11,7 @@
             </ul>
         </div>
         <div class="col-auto text-right float-right ml-auto">
-            <a href="{% url 'add_exam_title' %}" class="btn btn-outline-primary mr-2"><i class="fas fa-plus"></i> Add
-                Exam Title</a>
+            <a href="{% url 'add_exam_title' %}" class="btn btn-outline-primary mr-2"><i class="fas fa-plus"></i> Add Exam Title</a>
         </div>
     </div>
 </div>
@@ -33,7 +32,7 @@
                             <div class="form-group">
                                 <label>Exam Title</label>
                                 <select class="form-control" name="exam_title_id" required>
-                                    <option>Select Exam Title</option>
+                                    <option value="">Select Exam Title</option>
                                     {% for title in exam_titles %}
                                     <option value="{{ title.id }}">{{ title.title }}</option>
                                     {% endfor %}
@@ -41,24 +40,25 @@
                             </div>
                         </div>
 
+                        <!-- Student Dropdown -->
                         <div class="col-12 col-sm-6">
                             <div class="form-group">
                                 <label>Student</label>
                                 <select class="form-control" name="student_id" required>
-                                    <option>Select Student</option>
+                                    <option value="">Select Student</option>
                                     {% for student in students %}
-                                    <option value="{{ student.id }}">{{ student.admin.first_name }} {{
-                                        student.admin.last_name }}</option>
+                                    <option value="{{ student.id }}">{{ student.admin.first_name }} {{ student.admin.last_name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                         </div>
 
+                        <!-- Subject Dropdown -->
                         <div class="col-12 col-sm-6">
                             <div class="form-group">
                                 <label>Subject</label>
                                 <select class="form-control" name="subject_id" required>
-                                    <option>Select Subject</option>
+                                    <option value="">Select Subject</option>
                                     {% for subject in subjects %}
                                     <option value="{{ subject.id }}">{{ subject.name }}</option>
                                     {% endfor %}
