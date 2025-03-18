@@ -25,7 +25,7 @@ def home(request):
     today = timezone.now().date()
     total_present_students = Attendance.objects.filter(
         arrival_time__date=today,
-        departure_time__isnull=True  # Students who are still in school
+        departure_time__isnull=True
     ).count()
 
     # Calculate card statistics
