@@ -3,7 +3,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from kidsafe_app.models import Card, StudentAccount, InventoryItem, Dietary
-from kidsafe_app.forms import InventoryItemForm
 from decimal import Decimal, InvalidOperation
 from django.utils import timezone
 
@@ -24,27 +23,44 @@ def inventory_item_detail(request, item_id):
 @login_required(login_url='/')
 def add_inventory_item(request):
     if request.method == 'POST':
-        form = InventoryItemForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Inventory item added successfully!')
-            return redirect('inventory_management')
-    else:
-        form = InventoryItemForm()
-    return render(request, 'canteen/add_inventory_item.html', {'form': form})
+        name = request.POST.get('name')
+        image = request.FILES.get('image')
+        quantity = request.POST.get('quantity')
+        price = request.POST.get('price')
+        description = request.POST.get('description')
+        allergies = request.POST.get('allergies')
+        restrictions = request.POST.get('restrictions')
+
+        InventoryItem.objects.create(
+            name=name,
+            image=image,
+            quantity=quantity,
+            price=price,
+            description=description,
+            allergies=allergies,
+            restrictions=restrictions
+        )
+        messages.success(request, 'Inventory item added successfully!')
+        return redirect('inventory_management')
+    return render(request, 'canteen/add_inventory_item.html')
+
 
 @login_required(login_url='/')
 def edit_inventory_item(request, item_id):
     item = get_object_or_404(InventoryItem, id=item_id)
     if request.method == 'POST':
-        form = InventoryItemForm(request.POST, request.FILES, instance=item)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Item updated successfully!')
-            return redirect('inventory_item_detail', item_id=item.id)
-    else:
-        form = InventoryItemForm(instance=item)
-    return render(request, 'canteen/edit_inventory_item.html', {'form': form})
+        item.name = request.POST.get('name')
+        item.image = request.FILES.get('image', item.image)
+        item.quantity = request.POST.get('quantity')
+        item.price = request.POST.get('price')
+        item.description = request.POST.get('description')
+        item.allergies = request.POST.get('allergies')
+        item.restrictions = request.POST.get('restrictions')
+        item.save()
+        messages.success(request, 'Item updated successfully!')
+        return redirect('inventory_item_detail', item_id=item.id)
+    return render(request, 'canteen/edit_inventory_item.html', {'item': item})
+
 
 @login_required(login_url='/')
 def delete_inventory_item(request, item_id):

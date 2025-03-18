@@ -47,9 +47,18 @@
                     <select id="food-item" class="form-control">
                         <option value="">Select a food item</option>
                         {% for item in inventory_items %}
-                            <option value="{{ item.id }}" data-price="{{ item.price }}">{{ item.name }} - ${{ item.price }} - {{ item.description }}</option>
+                        <option value="{{ item.id }}" data-price="{{ item.price }}" data-allergies="{{ item.allergies|default:'None' }}"
+                            data-restrictions="{{ item.restrictions|default:'None' }}">
+                            {{ item.name }} - ${{ item.price }}
+                        </option>
                         {% endfor %}
                     </select>
+                </div>
+
+                <!-- Display Selected Food Item Details in Alert -->
+                <div id="selected-item-alert" class="alert alert-danger mt-3" style="display: none;">
+                    <p><strong>Allergies:</strong> <span id="selected-allergies"></span></p>
+                    <p><strong>Dietary Restrictions:</strong> <span id="selected-restrictions"></span></p>
                 </div>
 
                 <!-- Quantity Input -->
@@ -101,6 +110,22 @@
 <script>
     $(document).ready(function () {
         let cart = [];
+
+        // Show selected food item's price
+        $('#food-item').change(function () {
+            let selectedOption = $(this).find(':selected');
+            let allergies = selectedOption.data('allergies');
+            let restrictions = selectedOption.data('restrictions');
+            let itemAlert = $('#selected-item-alert');
+
+            if (allergies || restrictions) {
+                $('#selected-allergies').text(allergies);
+                $('#selected-restrictions').text(restrictions);
+                itemAlert.show();
+            } else {
+                itemAlert.hide();
+            }
+        });
 
         function scanCard() {
             $.ajax({
@@ -157,7 +182,7 @@
                                 }
                             });
                         } else {
-                            showError('This card is not assigned to a student or is inactive.');
+                            showError('This card is not assigned to a student.');
                         }
                     }
                 },

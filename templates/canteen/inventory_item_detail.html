@@ -47,6 +47,14 @@
                         <td>{{ item.description|default:"No description available." }}</td>
                     </tr>
                     <tr>
+                        <th scope="row">Allergies</th>
+                        <td>{{ item.allergies|default:"No allergies specified." }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Restrictions</th>
+                        <td>{{ item.restrictions|default:"No restrictions specified." }}</td>
+                    </tr>
+                    <tr>
                         <th scope="row">Created At</th>
                         <td>{{ item.created_at|date:"d-m-Y" }}</td>
                         <!--<td>{{ item.created_at|date:"d-m-Y, H:i" }}</td>-->

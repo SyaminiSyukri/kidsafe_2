@@ -131,15 +131,15 @@ class StudentAccount(models.Model):
     
 
 class InventoryItem(models.Model):
-    name = models.CharField(max_length=100, unique=True)  # Name of the item
-    image = models.ImageField(upload_to='inventory_images/', blank=True, null=True)  # Image of the item
-    quantity = models.PositiveIntegerField(default=0)     # Quantity in stock
-    price = models.DecimalField(max_digits=10, decimal_places=2)  # Price per unit
-    description = models.TextField(blank=True, null=True)  # Optional description
+    name = models.CharField(max_length=100, unique=True)
+    image = models.ImageField(upload_to='inventory_images/', blank=True, null=True)
+    quantity = models.PositiveIntegerField(default=0)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField(blank=True, null=True)
     allergies = models.CharField(max_length=100,blank=True, null=True) 
     restrictions = models.CharField(max_length=100,blank=True, null=True) 
-    created_at = models.DateTimeField(auto_now_add=True)   # Timestamp when item was added
-    updated_at = models.DateTimeField(auto_now=True)       # Timestamp when item was last updated
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
