@@ -63,8 +63,6 @@ def process_payment(request):
 
         try:
             card = Card.objects.get(card_id=card_id)
-            if not card.student or not card.is_active:
-                return JsonResponse({'success': False, 'error': 'This card is not assigned to a student or is inactive.'})
 
             student_account = StudentAccount.objects.get(student=card.student)
 

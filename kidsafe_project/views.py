@@ -90,7 +90,7 @@ def profile_update(request):
 @login_required
 def profile_delete(request, user_id):
     # Ensure the user is deleting their own profile picture or has permission
-    if request.user.user_type not in ['1', '2']:  # Only admin (1) and teacher (2) can delete
+    if request.user.user_type not in ['1', '2', '3']: 
         messages.error(request, 'You do not have permission to delete this profile picture.')
         return redirect('profile')
 
@@ -110,6 +110,8 @@ def profile_delete(request, user_id):
     if request.user.user_type == '1':  # Admin
         return redirect('edit_student', id=user.student.id)
     elif request.user.user_type == '2':  # Teacher
+        return redirect('profile')
+    elif request.user.user_type == '3':  # Student
         return redirect('profile')
     else:
         return redirect('profile')  # Fallback for other user types

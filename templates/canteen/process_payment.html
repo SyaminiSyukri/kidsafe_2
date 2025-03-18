@@ -47,7 +47,7 @@
                     <select id="food-item" class="form-control">
                         <option value="">Select a food item</option>
                         {% for item in inventory_items %}
-                            <option value="{{ item.id }}" data-price="{{ item.price }}">{{ item.name }} - ${{ item.price }}</option>
+                            <option value="{{ item.id }}" data-price="{{ item.price }}">{{ item.name }} - ${{ item.price }} - {{ item.description }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -157,7 +157,7 @@
                                 }
                             });
                         } else {
-                            showError('This card is not assigned to a student.');
+                            showError('This card is not assigned to a student or is inactive.');
                         }
                     }
                 },
