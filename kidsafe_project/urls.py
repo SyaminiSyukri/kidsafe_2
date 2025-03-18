@@ -117,6 +117,7 @@ urlpatterns = [
     path('canteen/inventory/delete/<int:item_id>/', canteen_views.delete_inventory_item, name='delete_inventory_item'),
 
     path('canteen/process-payment/', canteen_views.process_payment, name='process_payment'),
+    path('canteen/transaction-history/', canteen_views.transaction_history, name='transaction_history'),
 
 ]   + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
 

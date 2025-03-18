@@ -47,7 +47,8 @@
                     <select id="food-item" class="form-control">
                         <option value="">Select a food item</option>
                         {% for item in inventory_items %}
-                        <option value="{{ item.id }}" data-price="{{ item.price }}" data-allergies="{{ item.allergies|default:'None' }}"
+                        <option value="{{ item.id }}" data-price="{{ item.price }}"
+                            data-allergies="{{ item.allergies|default:'None' }}"
                             data-restrictions="{{ item.restrictions|default:'None' }}">
                             {{ item.name }} - ${{ item.price }}
                         </option>
@@ -64,7 +65,8 @@
                 <!-- Quantity Input -->
                 <div class="form-group">
                     <label for="quantity">Quantity</label>
-                    <input type="number" id="quantity" class="form-control" placeholder="Enter quantity" min="1" value="1">
+                    <input type="number" id="quantity" class="form-control" placeholder="Enter quantity" min="1"
+                        value="1">
                 </div>
 
                 <!-- Add to Cart Button -->
@@ -82,7 +84,8 @@
                 <!-- Amount Input -->
                 <div class="form-group">
                     <label for="amount">Total Amount to Deduct:</label>
-                    <input type="number" id="amount" class="form-control" placeholder="Enter amount" step="0.01" min="0" readonly>
+                    <input type="number" id="amount" class="form-control" placeholder="Enter amount" step="0.01" min="0"
+                        readonly>
                 </div>
 
                 <!-- Status Messages -->
@@ -131,7 +134,7 @@
             $.ajax({
                 url: "{% url 'read_card' %}",
                 method: 'GET',
-                headers: {'X-Requested-With': 'XMLHttpRequest'},
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 success: function (response) {
                     if (response.card_id) {
                         $('#card-id').val(response.card_id);
@@ -140,8 +143,8 @@
                             $.ajax({
                                 url: "{% url 'process_payment' %}",
                                 method: 'POST',
-                                headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': '{{ csrf_token }}'},
-                                data: {card_id: response.card_id},
+                                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': '{{ csrf_token }}' },
+                                data: { card_id: response.card_id },
                                 success: function (studentResponse) {
                                     if (studentResponse.success) {
                                         $('#student-name').text(studentResponse.student_name);
@@ -227,6 +230,7 @@
         $('#process-payment-btn').click(function () {
             const cardId = $('#card-id').val();
             const amount = $('#amount').val();
+            const items = JSON.stringify(cart);  // Convert cart items to JSON
 
             if (!cardId) {
                 showError('Please scan a card.');
@@ -241,14 +245,30 @@
             $.ajax({
                 url: "{% url 'process_payment' %}",
                 method: 'POST',
-                headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': '{{ csrf_token }}'},
-                data: {card_id: cardId, amount: amount},
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': '{{ csrf_token }}' },
+                data: { card_id: cardId, amount: amount, items: items },
                 success: function (response) {
                     if (response.success) {
                         $('#success-text').text(response.message);
                         $('#success-message').show();
                         $('#current-balance').text(response.new_balance);
                         $('#status-message').hide();
+
+                        // Display dietary details if available
+                        if (response.food_allergy) {
+                            $('#food-allergy').text(response.food_allergy);
+                            $('#food-allergy-warning').show();
+                        } else {
+                            $('#food-allergy-warning').hide();
+                        }
+
+                        if (response.dietary_restriction) {
+                            $('#dietary-restriction').text(response.dietary_restriction);
+                            $('#dietary-restriction-warning').show();
+                        } else {
+                            $('#dietary-restriction-warning').hide();
+                        }
+
                         cart = [];
                         updateCart();
                     } else {
@@ -260,7 +280,6 @@
                 }
             });
         });
-
         setInterval(scanCard, 2000);
     });
 </script>
