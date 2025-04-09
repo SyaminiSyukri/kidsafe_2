@@ -132,7 +132,7 @@ class StudentAccount(models.Model):
 
 class InventoryItem(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    image = models.ImageField(upload_to='inventory_images/', blank=True, null=True)
+    image = models.ImageField(upload_to='media/inventory_images/', blank=True, null=True)
     quantity = models.PositiveIntegerField(default=0)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField(blank=True, null=True)
@@ -144,6 +144,7 @@ class InventoryItem(models.Model):
     def __str__(self):
         return self.name
 
+
 class Transaction(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     items = models.TextField()  # Stores the list of purchased items
@@ -152,3 +153,16 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.student.admin.first_name} {self.student.admin.last_name} - {self.transaction_date}"
+
+
+class TeacherNotification(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    file = models.FileField(upload_to='media/notifications/', blank=True, null=True)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    sender = models.ForeignKey(CustomUser , on_delete=models.CASCADE, blank=True, null=True)  # Reference to the admin user
+    created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)  # Field to track read status
+
+    def __str__(self):
+        return self.title   

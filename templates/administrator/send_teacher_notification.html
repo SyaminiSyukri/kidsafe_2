@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Send Notification to Teachers</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Send Notification</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% include 'includes/messages.html' %}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <input type="text" class="form-control" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea class="form-control" name="description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="file">Attach File (optional)</label>
+                        <input type="file" class="form-control" name="file">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipients">Select Recipients</label>
+                        <select multiple class="form-control" name="recipients" required>
+                            <option value="all">All Teachers</option>
+                            {% for teacher in teachers %}
+                            <option value="{{ teacher.id }}">{{ teacher.admin.first_name }} {{ teacher.admin.last_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Notification</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,7 +1,7 @@
 import logging
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.contrib.auth.decorators import login_required
-from kidsafe_app.models import Classroom, CustomUser, Student, Teacher, Canteen, Subject, Card, Attendance, StudentAccount
+from kidsafe_app.models import Classroom, CustomUser, Student, Teacher, Canteen, Subject, Card, Attendance, StudentAccount, TeacherNotification
 from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime
@@ -851,3 +851,51 @@ def scan_and_add_balance(request):
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
     return render(request, 'administrator/scan_and_add_balance.html')
+
+
+@login_required(login_url='/')
+def send_teacher_notification(request):
+    teachers = Teacher.objects.all()  # Get all teachers using Teacher model
+
+    if request.method == "POST":
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        file = request.FILES.get('file')
+        selected_recipients = request.POST.getlist('recipients')  # Get selected recipients
+
+        if not selected_recipients:
+            messages.warning(request, 'Please select at least one recipient.')
+            return redirect('send_teacher_notification')
+
+        # Check if "All Teachers" was selected
+        if 'all' in selected_recipients:
+            # Create notification for all teachers
+            for teacher in teachers:
+                notification = TeacherNotification(
+                    title=title,
+                    description=description,
+                    file=file,
+                    teacher=teacher,
+                    sender=request.user  # Set the sender to the current admin user
+                )
+                notification.save()
+        else:
+            # Create notification for selected teachers only
+            for teacher_id in selected_recipients:
+                teacher = Teacher.objects.get(id=teacher_id)
+                notification = TeacherNotification(
+                    title=title,
+                    description=description,
+                    file=file,
+                    teacher=teacher,
+                    sender=request.user
+                )
+                notification.save()
+
+        messages.success(request, 'Notification sent successfully!')
+        return redirect('send_teacher_notification')
+
+    context = {
+        'teachers': teachers,
+    }
+    return render(request, 'administrator/send_teacher_notification.html', context)

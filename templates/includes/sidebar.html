@@ -35,7 +35,7 @@
                     <a href="#"><i class="fa fa-bell"></i> <span> Send Notification</span> <span
                             class="menu-arrow"></span></a>
                     <ul>
-                        <li><a href="#">Teacher Notification</a></li>
+                        <li><a href="{% url 'send_teacher_notification' %}">Teacher Notification</a></li>
                         <li><a href="#">Student Notification</a></li>
                         <li><a href="#">Canteen Notification</a></li>
                     </ul>
@@ -107,8 +107,8 @@
                 <li class="{% active_link 'view_timetable' 'active' %}">
                     <a href="{% url 'view_timetable' %}"><i class="fa fa-calendar"></i> <span>Timetable</span></a>
                 </li>
-                <li class="{% active_link '#' 'active' %}">
-                    <a href="#"><i class="fa fa-bell"></i> <span>Notification</span></a>
+                <li class="{% active_link 'view_teacher_notifications' 'active' %}">
+                    <a href="{% url 'view_teacher_notifications' %}"><i class="fa fa-bell"></i> <span>Notification</span></a>
                 </li>
                 <li class="{% active_link '#' 'active' %}">
                     <a href="#"><i class="fas fa-comments"></i> <span>Feedback</span></a>

@@ -6,9 +6,9 @@
    <meta charset="utf-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
    {% if user.user_type == '1' %}
-   <title>KidSafe - Admin</title> 
+   <title>KidSafe - Admin</title>
    {% elif user.user_type == '2' %}
-   <title>KidSafe - Teacher</title> 
+   <title>KidSafe - Teacher</title>
    {% elif user.user_type == '3' %}
    <title>KidSafe - Student</title>
    {% else %}
@@ -57,14 +57,45 @@
       <script type="text/javascript">
          $(document).ready(function () {
             $('#table_id').dataTable();
-         })
+         });
       </script>
 
       {% block scripts %}
-      
+      <!-- Additional scripts can be added here -->
       {% endblock %}
 
    </div>
+
+   <!-- Bootstrap Modal Template -->
+   <div class="modal fade" id="notificationModal" tabindex="-1" role="dialog" aria-labelledby="notificationModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog" role="document">
+         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title" id="notificationModalLabel">Notification Title</h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+               </button>
+            </div>
+            <div class="modal-body">
+               <p>Notification description goes here.</p>
+               <a href="#" id="notificationFileLink" target="_blank">Download Attachment</a>
+            </div>
+            <div class="modal-footer">
+               {% if notification.id %}
+               <form method="POST" action="{% url 'mark_notification_as_read' notification.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-primary">Mark as Read</button>
+               </form>
+               {% else %}
+               <p>No notification ID available.</p>
+               {% endif %}
+               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+         </div>
+      </div>
+   </div>
+
 </body>
 
 </html>

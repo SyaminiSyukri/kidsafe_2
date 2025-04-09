@@ -61,6 +61,8 @@ urlpatterns = [
     path('administrator/subject/edit/<int:id>/', administrator_views.edit_subject, name='edit_subject'),
     path('administrator/subject/delete/<int:id>/', administrator_views.delete_subject, name='delete_subject'),
 
+    path('administrator/send-notification/', administrator_views.send_teacher_notification, name='send_teacher_notification'),
+
     path('administrator/register-card/', administrator_views.register_card, name='register_card'),
     path('administrator/read-card/', administrator_views.read_card, name='read_card'),
     path('administrator/registered-cards/', administrator_views.view_registered_cards, name='view_registered_cards'),
@@ -96,6 +98,9 @@ urlpatterns = [
     path('teacher/timetable/delete/<int:id>/', teacher_views.delete_timetable, name='delete_timetable'),
 
     path('teacher/attendance/', teacher_views.teacher_view_attendance, name='teacher_view_attendance'),
+
+    path('teacher/notifications/', teacher_views.view_teacher_notifications, name='view_teacher_notifications'),
+    path('teacher/notifications/mark-as-read/<int:notification_id>/', teacher_views.mark_notification_as_read, name='mark_notification_as_read'),
     
     #Student page URL
     path('student/home', student_views.home, name='student_home'),

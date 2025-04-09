@@ -36,7 +36,7 @@ SECRET_KEY = 'django-insecure-5i(rtogbnt!xj-5s$z^usdvwewn@3j^mfpwhd=buxdb3bdw-d+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.186.122','127.0.0.1','192.168.100.235','192.168.100.15','192.168.100.9','192.168.25.122','10.95.1.156']
+ALLOWED_HOSTS = ['192.168.186.122','127.0.0.1', '192.168.100.6']
 
 
 # Application definition
@@ -75,6 +75,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'kidsafe_app.context_processors.notification_count',
             ],
         },
     },

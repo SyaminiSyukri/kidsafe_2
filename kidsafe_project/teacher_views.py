@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.contrib.auth.decorators import login_required
-from kidsafe_app.models import CustomUser, Classroom, Student, Teacher, Subject, ExamTitle, ExamResult, Timetable, Attendance
+from kidsafe_app.models import CustomUser, Classroom, Student, Teacher, Subject, ExamTitle, ExamResult, Timetable, Attendance, TeacherNotification
 from django.contrib import messages
 from django.db.models import F
 from django.db.models import Sum
@@ -479,3 +479,25 @@ def delete_timetable(request, id):
     timetable.delete()
     messages.success(request, 'Timetable deleted successfully!')
     return redirect('view_timetable')
+
+
+@login_required(login_url='/')
+def view_teacher_notifications(request):
+    teacher = Teacher.objects.get(admin=request.user)  # Get the logged-in teacher
+    notifications = TeacherNotification.objects.filter(teacher=teacher).order_by('-created_at')
+    
+    # Count unread notifications
+    unread_count = TeacherNotification.objects.filter(teacher=teacher, read=False).count()
+
+    context = {
+        'notifications': notifications,
+        'unread_count': unread_count,  # Pass the unread count to the template
+    }
+    return render(request, 'teacher/view_teacher_notifications.html', context)
+
+@login_required(login_url='/')
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(TeacherNotification, id=notification_id)
+    notification.read = True
+    notification.save()
+    return redirect('view_teacher_notifications')
