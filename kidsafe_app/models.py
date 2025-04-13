@@ -158,7 +158,7 @@ class Transaction(models.Model):
 class TeacherNotification(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
-    file = models.FileField(upload_to='media/notifications/', blank=True, null=True)
+    file = models.FileField(upload_to='media/notifications/teacher/', blank=True, null=True)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     sender = models.ForeignKey(CustomUser , on_delete=models.CASCADE, blank=True, null=True)  # Reference to the admin user
     created_at = models.DateTimeField(auto_now_add=True)
@@ -166,3 +166,47 @@ class TeacherNotification(models.Model):
 
     def __str__(self):
         return self.title   
+    
+
+class CanteenNotification(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    file = models.FileField(upload_to='media/notifications/canteen/', blank=True, null=True)
+    canteen = models.ForeignKey(Canteen, on_delete=models.CASCADE)
+    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE, blank=True, null=True)  # Reference to the admin user
+    created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)  # Field to track read status
+
+    def __str__(self):
+        return self.title
+    
+class StudentNotification(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, blank=True, null=True)  # Direct link to student
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    file = models.FileField(upload_to='media/notifications/student/', blank=True, null=True)
+    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)  # Simple boolean like teacher version
+
+    def __str__(self):
+        return f"{self.title} - {self.student}"
+    
+
+class FeedbackToAdmin(models.Model):
+    SENDER_TYPES = (
+        ('teacher', 'Teacher'),
+        ('student', 'Student'),
+        ('canteen', 'Canteen Staff'),
+    )
+    
+    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    sender_type = models.CharField(max_length=10, choices=SENDER_TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    attachment = models.FileField(upload_to='media/feedback/', blank=True, null=True)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.get_sender_type_display()} Feedback: {self.title}"

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from kidsafe_app.models import Student, Teacher, Dietary, ExamTitle, ExamResult, Timetable, Attendance, StudentAccount, Card
+from kidsafe_app.models import Student, Teacher, Dietary, ExamTitle, ExamResult, Timetable, Attendance, StudentAccount, StudentNotification, FeedbackToAdmin
 from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime
@@ -183,3 +183,43 @@ def view_account_balance(request):
         'balance': balance,
     }
     return render(request, 'student/view_account_balance.html', context) 
+
+
+# student_views.py
+@login_required(login_url='/')
+def view_student_notifications(request):
+    notifications = StudentNotification.objects.filter(
+        student__admin=request.user
+    ).order_by('-created_at')
+    
+    return render(request, 'student/view_student_notifications.html', {
+        'notifications': notifications,
+        'unread_count': notifications.filter(read=False).count()
+    })
+
+@login_required(login_url='/')
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(
+        StudentNotification, 
+        id=notification_id,
+        student__admin=request.user
+    )
+    notification.read = True
+    notification.save()
+    return redirect('view_student_notifications')
+
+
+@login_required
+def send_student_feedback(request):
+    if request.method == 'POST':
+        FeedbackToAdmin.objects.create(
+            sender=request.user,
+            sender_type='student',
+            title=request.POST.get('title'),
+            message=request.POST.get('message'),
+            attachment=request.FILES.get('attachment')
+        )
+        messages.success(request, 'Feedback sent to admin!')
+        return redirect('send_student_feedback')
+    
+    return render(request, 'student/send_feedback.html')

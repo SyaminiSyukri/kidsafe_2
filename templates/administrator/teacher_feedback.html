@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+    <h3>Teacher Feedback</h3>
+    {% if teacher_feedback_unread > 0 %}
+    <span class="badge badge-danger">Unread: {{ teacher_feedback_unread }}</span>
+    {% endif %}
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Teacher</th>
+            <th>Subject</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for feedback in feedback_list %}
+        <tr class="{% if not feedback.is_read %}table-info{% endif %}">
+            <td>{{ feedback.sender.get_full_name }}</td>
+            <td>{{ feedback.title }}</td>
+            <td>{{ feedback.sent_at|date:"M d, Y" }}</td>
+            <td>
+                {% if feedback.is_read %}
+                    <span class="badge badge-success">Read</span>
+                {% else %}
+                    <span class="badge badge-warning">Unread</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="#" data-toggle="modal" data-target="#feedbackModal{{ feedback.id }}" 
+                   class="btn btn-sm btn-info">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal for each feedback -->
+{% for feedback in feedback_list %}
+<div class="modal fade" id="feedbackModal{{ feedback.id }}">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>{{ feedback.title }}</h5>
+            </div>
+            <div class="modal-body">
+                <p><strong>From:</strong> {{ feedback.sender.get_full_name }}</p>
+                <p>{{ feedback.message }}</p>
+                {% if feedback.attachment %}
+                <a href="{{ feedback.attachment.url }}" download>Download Attachment</a>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                {% if not feedback.is_read %}
+                <a href="{% url 'mark_feedback_read' feedback.id %}" class="btn btn-primary">Mark as Read</a>
+                {% endif %}
+                <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+
+{% endblock %}

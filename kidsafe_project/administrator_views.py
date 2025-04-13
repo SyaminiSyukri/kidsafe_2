@@ -1,7 +1,7 @@
 import logging
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.contrib.auth.decorators import login_required
-from kidsafe_app.models import Classroom, CustomUser, Student, Teacher, Canteen, Subject, Card, Attendance, StudentAccount, TeacherNotification
+from kidsafe_app.models import Classroom, CustomUser, Student, Teacher, Canteen, Subject, Card, Attendance, StudentAccount, TeacherNotification, StudentNotification, CanteenNotification, FeedbackToAdmin
 from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime
@@ -899,3 +899,122 @@ def send_teacher_notification(request):
         'teachers': teachers,
     }
     return render(request, 'administrator/send_teacher_notification.html', context)
+
+
+@login_required(login_url='/')
+def send_canteen_notification(request):
+    canteens = Canteen.objects.all()  # Get all canteen staff
+
+    if request.method == "POST":
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        file = request.FILES.get('file')
+        selected_recipients = request.POST.getlist('recipients')  # Get selected recipients
+
+        if not selected_recipients:
+            messages.warning(request, 'Please select at least one recipient.')
+            return redirect('send_canteen_notification')
+
+        # Check if "All Canteen Staff" was selected
+        if 'all' in selected_recipients:
+            # Create notification for all canteen staff
+            for canteen in canteens:
+                notification = CanteenNotification(
+                    title=title,
+                    description=description,
+                    file=file,
+                    canteen=canteen,
+                    sender=request.user  # Set the sender to the current admin user
+                )
+                notification.save()
+        else:
+            # Create notification for selected canteen staff only
+            for canteen_id in selected_recipients:
+                canteen = Canteen.objects.get(id=canteen_id)
+                notification = CanteenNotification(
+                    title=title,
+                    description=description,
+                    file=file,
+                    canteen=canteen,
+                    sender=request.user
+                )
+                notification.save()
+
+        messages.success(request, 'Notification sent successfully!')
+        return redirect('send_canteen_notification')
+
+    context = {
+        'canteens': canteens,
+    }
+    return render(request, 'administrator/send_canteen_notification.html', context)
+
+
+@login_required(login_url='/')
+def send_student_notification(request):
+    classrooms = Classroom.objects.all()
+
+    if request.method == "POST":
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        file = request.FILES.get('file')
+        selected_classrooms = request.POST.getlist('classrooms')
+
+        if not selected_classrooms:
+            messages.warning(request, 'Please select at least one classroom.')
+            return redirect('send_student_notification')
+
+        students = Student.objects.all()
+        if 'all' not in selected_classrooms:
+            students = students.filter(classroom_id__in=selected_classrooms)
+
+        # Create individual notification for each student
+        for student in students:
+            StudentNotification.objects.create(
+                student=student,
+                title=title,
+                description=description,
+                file=file,
+                sender=request.user
+            )
+
+        messages.success(request, 'Notification sent successfully!')
+        return redirect('send_student_notification')
+
+    return render(request, 'administrator/send_student_notification.html', {'classrooms': classrooms})
+
+@login_required
+def view_teacher_feedback(request):
+    feedback_list = FeedbackToAdmin.objects.filter(
+        sender_type='teacher'
+    ).order_by('-sent_at')
+    return render(request, 'administrator/teacher_feedback.html', {
+        'feedback_list': feedback_list,
+        'teacher_feedback_unread': feedback_list.filter(is_read=False).count()
+    })
+
+@login_required
+def view_student_feedback(request):
+    feedback_list = FeedbackToAdmin.objects.filter(
+        sender_type='student'
+    ).order_by('-sent_at')
+    return render(request, 'administrator/student_feedback.html', {
+        'feedback_list': feedback_list,
+        'student_feedback_unread': feedback_list.filter(is_read=False).count()
+    })
+
+@login_required
+def view_canteen_feedback(request):
+    feedback_list = FeedbackToAdmin.objects.filter(
+        sender_type='canteen'
+    ).order_by('-sent_at')
+    return render(request, 'administrator/canteen_feedback.html', {
+        'feedback_list': feedback_list,
+        'canteen_feedback_unread': feedback_list.filter(is_read=False).count()
+    })
+
+@login_required
+def mark_feedback_read(request, pk):
+    feedback = get_object_or_404(FeedbackToAdmin, pk=pk)
+    feedback.is_read = True
+    feedback.save()
+    return redirect(f'view_{feedback.sender_type}_feedback')

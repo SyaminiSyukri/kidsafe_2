@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Feedback</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'teacher_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Send Feedback</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% include 'includes/messages.html' %}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Feedback</label>
+                        <textarea name="message" class="form-control" rows="5" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Attachment (Optional)</label>
+                        <input type="file" name="attachment" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

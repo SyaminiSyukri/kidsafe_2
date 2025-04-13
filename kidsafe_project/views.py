@@ -115,4 +115,6 @@ def profile_delete(request, user_id):
         return redirect('profile')
     else:
         return redirect('profile')  # Fallback for other user types
+    
+
 

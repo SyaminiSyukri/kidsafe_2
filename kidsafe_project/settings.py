@@ -76,6 +76,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'kidsafe_app.context_processors.notification_count',
+                'kidsafe_app.context_processors.feedback_counts',
             ],
         },
     },

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
-from kidsafe_app.models import Card, StudentAccount, InventoryItem, Dietary, Transaction
+from kidsafe_app.models import Card, StudentAccount, InventoryItem, Dietary, Transaction, Canteen, CanteenNotification, FeedbackToAdmin
 from decimal import Decimal, InvalidOperation
 from django.utils import timezone
 from datetime import datetime
@@ -175,3 +175,42 @@ def transaction_history(request):
         'search_query': search_query,  # Pass the search query to the template
     }
     return render(request, 'canteen/transaction_history.html', context)
+
+
+@login_required(login_url='/')
+def view_canteen_notifications(request):
+    canteen = Canteen.objects.get(admin=request.user)  # Get the logged-in canteen staff
+    notifications = CanteenNotification.objects.filter(canteen=canteen).order_by('-created_at')
+    
+    # Count unread notifications
+    unread_count = CanteenNotification.objects.filter(canteen=request.user.canteen, read=False).count()
+
+    context = {
+        'notifications': notifications,
+        'unread_count': unread_count,
+    }
+    return render(request, 'canteen/view_canteen_notifications.html', context)
+
+
+@login_required(login_url='/')
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(CanteenNotification, id=notification_id)
+    notification.read = True
+    notification.save()
+    return redirect('view_canteen_notifications')
+
+
+@login_required
+def send_canteen_feedback(request):
+    if request.method == 'POST':
+        FeedbackToAdmin.objects.create(
+            sender=request.user,
+            sender_type='canteen',
+            title=request.POST.get('title'),
+            message=request.POST.get('message'),
+            attachment=request.FILES.get('attachment')
+        )
+        messages.success(request, 'Feedback sent to admin!')
+        return redirect('send_canteen_feedback')
+    
+    return render(request, 'canteen/send_feedback.html')

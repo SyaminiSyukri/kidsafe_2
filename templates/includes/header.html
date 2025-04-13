@@ -48,9 +48,11 @@
         <li class="nav-item dropdown has-arrow">
             <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
                 {% if user.profile_pic == "" %}
-                <span class="user-img"><img class="rounded-circle" src="{% static 'assets/img/noimg.png' %}" width="31" height="31" alt=""></span>
+                <span class="user-img"><img class="rounded-circle" src="{% static 'assets/img/noimg.png' %}" width="31"
+                        height="31" alt=""></span>
                 {% else %}
-                <span class="user-img"><img class="rounded-circle" src="/{{user.profile_pic}}" width="31" height="31" alt=""></span>
+                <span class="user-img"><img class="rounded-circle" src="/{{user.profile_pic}}" width="31" height="31"
+                        alt=""></span>
                 {% endif %}
             </a>
             <div class="dropdown-menu">
@@ -79,13 +81,66 @@
                 <a class="dropdown-item" href="{% url 'doLogout' %}">Logout</a>
             </div>
         </li>
+
         <li class="nav-item">
-            <a href="{% if user.user_type == '2' %}{% url 'view_teacher_notifications' %}{% else %}#{% endif %}" class="nav-link">
+            {% if user.user_type == '2' %} <!-- Teacher -->
+            <a href="{% url 'view_teacher_notifications' %}" class="nav-link">
                 <i class="fas fa-bell"></i>
-                {% if user.user_type == '2' and unread_count > 0 %}
-                    <span class="badge badge-danger">{{ unread_count }}</span>
+                {% if unread_count > 0 %}
+                <span class="badge badge-danger">{{ unread_count }}</span>
                 {% endif %}
             </a>
+            {% elif user.user_type == '3' %} <!-- Student -->
+            <a href="{% url 'view_student_notifications' %}" class="nav-link">
+                <i class="fas fa-bell"></i>
+                {% if unread_count > 0 %}
+                <span class="badge badge-danger">{{ unread_count }}</span>
+                {% endif %}
+            </a>
+            {% elif user.user_type == '4' %} <!-- Canteen -->
+            <a href="{% url 'view_canteen_notifications' %}" class="nav-link">
+                <i class="fas fa-bell"></i>
+                {% if unread_count > 0 %}
+                <span class="badge badge-danger">{{ unread_count }}</span>
+                {% endif %}
+            </a>
+
+            {% else %} <!-- Admin -->
+
+            <li class="nav-item dropdown">
+                <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
+                    <i class="fas fa-bell"></i>
+                    {% if unread_count > 0 %}
+                    <span class="badge badge-danger">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
+                <div class="dropdown-menu dropdown-menu-right">
+                    {% if request.user.user_type == '1' %}  <!-- Admin -->
+                        <h6 class="dropdown-header">Feedback Notifications</h6>
+                        <a href="{% url 'view_teacher_feedback' %}" class="dropdown-item d-flex justify-content-between align-items-center">
+                            <span>Teacher Feedback</span>
+                            {% if teacher_feedback_unread > 0 %}
+                            <span class="badge badge-danger">{{ teacher_feedback_unread }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'view_student_feedback' %}" class="dropdown-item d-flex justify-content-between align-items-center">
+                            <span>Student Feedback</span>
+                            {% if student_feedback_unread > 0 %}
+                            <span class="badge badge-danger">{{ student_feedback_unread }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'view_canteen_feedback' %}" class="dropdown-item d-flex justify-content-between align-items-center">
+                            <span>Canteen Feedback</span>
+                            {% if canteen_feedback_unread > 0 %}
+                            <span class="badge badge-danger">{{ canteen_feedback_unread }}</span>
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                </div>
+            </li>
+
+            {% endif %}
         </li>
+
     </ul>
 </div>

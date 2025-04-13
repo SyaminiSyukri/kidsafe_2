@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h3 class="page-title">Notification</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'student_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Notification</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% include 'includes/messages.html' %}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card card-table">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-center mb-0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Sender</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for notification in notifications %}
+                            <tr>
+                                <td>{{ notification.title }}</td>
+                                <td>{{ notification.sender.first_name }} {{ notification.sender.last_name }}</td>
+                                <td>{{ notification.created_at }}</td>
+                                <td>
+                                    {% if notification.read %}
+                                    <span class="badge badge-success">Read</span>
+                                    {% else %}
+                                    <span class="badge badge-warning">Unread</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-info" data-toggle="modal"
+                                        data-target="#notificationModal{{ notification.id }}">View</button>
+                                </td>
+                            </tr>
+
+                            <!-- Modal -->
+                            <div class="modal fade" id="notificationModal{{ notification.id }}" tabindex="-1"
+                                role="dialog" aria-labelledby="notificationModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="notificationModalLabel">{{ notification.title }}
+                                            </h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>{{ notification.description }}</p>
+                                            {% if notification.file %}
+                                            <p>Attachment: <a href="{{ notification.file.url }}" target="_blank">Download File</a></p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="modal-footer">
+                                            {% if not notification.read %}
+                                            <form method="POST"
+                                                action="{% url 'mark_student_notification_as_read' notification.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-primary">Mark as Read</button>
+                                            </form>
+                                            {% else %}
+                                            <button class="btn btn-secondary" disabled>Read</button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5">No notifications found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

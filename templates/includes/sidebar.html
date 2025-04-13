@@ -32,21 +32,19 @@
                     <a href="{% url 'view_subject' %}"><i class="fas fa-book-reader"></i> <span>Subjects</span></a>
                 </li>
                 <li class="submenu">
-                    <a href="#"><i class="fa fa-bell"></i> <span> Send Notification</span> <span
-                            class="menu-arrow"></span></a>
+                    <a href="#"><i class="fa fa-bell"></i> <span> Send Notification</span> <span class="menu-arrow"></span></a>
                     <ul>
                         <li><a href="{% url 'send_teacher_notification' %}">Teacher Notification</a></li>
-                        <li><a href="#">Student Notification</a></li>
-                        <li><a href="#">Canteen Notification</a></li>
+                        <li><a href="{% url 'send_student_notification' %}">Student Notification</a></li>
+                        <li><a href="{% url 'send_canteen_notification' %}">Canteen Notification</a></li>
                     </ul>
                 </li>
                 <li class="submenu">
-                    <a href="#"><i class="fas fa-comments"></i> <span> Feedback</span> <span
-                            class="menu-arrow"></span></a>
+                    <a href="#"><i class="fas fa-comments"></i> <span> </span> Feedback <span class="menu-arrow"></span></a>
                     <ul>
-                        <li><a href="#">Teacher Feedback</a></li>
-                        <li><a href="#">Student Feedback</a></li>
-                        <li><a href="#">Canteen Feedback</a></li>
+                        <li><a href="{% url 'view_teacher_feedback' %}">Teacher Feedback</a></li>
+                        <li><a href="{% url 'view_student_feedback' %}">Student Feedback</a></li>
+                        <li><a href="{% url 'view_canteen_feedback' %}">Canteen Feedback</a></li>
                     </ul>
                 </li>
                 <li class="menu-title">
@@ -110,8 +108,8 @@
                 <li class="{% active_link 'view_teacher_notifications' 'active' %}">
                     <a href="{% url 'view_teacher_notifications' %}"><i class="fa fa-bell"></i> <span>Notification</span></a>
                 </li>
-                <li class="{% active_link '#' 'active' %}">
-                    <a href="#"><i class="fas fa-comments"></i> <span>Feedback</span></a>
+                <li class="{% active_link 'send_teacher_feedback' 'active' %}">
+                    <a href="{% url 'send_teacher_feedback' %}"><i class="fas fa-comments"></i> <span>Feedback</span></a>
                 </li>
                 <!--<li class="menu-title">
                     <span>NFC Function</span>
@@ -150,11 +148,11 @@
                 <li class="{% active_link 'view_account_balance' 'active' %}">
                     <a href="{% url 'view_account_balance' %}"><i class="fas fa-wallet"></i> <span>Account Balance</span></a>
                 </li>
-                <li class="{% active_link '#' 'active' %}">
-                    <a href="#"><i class="fa fa-bell"></i> <span>Notification</span></a>
+                <li class="{% active_link 'view_student_notifications' 'active' %}">
+                    <a href="{% url 'view_student_notifications' %}"><i class="fa fa-bell"></i> <span>Notification</span></a>
                 </li>
-                <li class="{% active_link '#' 'active' %}">
-                    <a href="#"><i class="fas fa-comments"></i> <span>Feedback</span></a>
+                <li class="{% active_link 'send_student_feedback' 'active' %}">
+                    <a href="{% url 'send_student_feedback' %}"><i class="fas fa-comments"></i> <span>Feedback</span></a>
                 </li>
                 <li>
                     <a href="{% url 'doLogout' %}"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
@@ -178,11 +176,11 @@
                 <li class="{% active_link 'transaction_history' 'active' %}">
                     <a href="{% url 'transaction_history' %}"><i class="fas fa-history"></i> <span>Transaction History</span></a>
                 </li>
-                <li class="{% active_link '#' 'active' %}">
-                    <a href="#"><i class="fa fa-bell"></i> <span>Notification</span></a>
+                <li class="{% active_link 'view_canteen_notifications' 'active' %}">
+                    <a href="{% url 'view_canteen_notifications' %}"><i class="fa fa-bell"></i> <span>Notification</span></a>
                 </li>
-                <li class="{% active_link '#' 'active' %}">
-                    <a href="#"><i class="fas fa-comments"></i> <span>Feedback</span></a>
+                <li class="{% active_link 'send_canteen_feedback' 'active' %}">
+                    <a href="{% url 'send_canteen_feedback' %}"><i class="fas fa-comments"></i> <span>Feedback</span></a>
                 </li>
                 <li>
                     <a href="{% url 'doLogout' %}"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>

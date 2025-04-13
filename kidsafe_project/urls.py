@@ -34,6 +34,7 @@ urlpatterns = [
         template_name='password_reset_complete.html'  # Custom template
     ), name='password_reset_complete'),
 
+
     #Administrator page URL
     path('administrator/home', administrator_views.home, name='admin_home'),
 
@@ -49,7 +50,6 @@ urlpatterns = [
     path('administrator/teacher/update', administrator_views.update_teacher, name='update_teacher'),
     path('administrator/teacher/delete/<str:admin>', administrator_views.delete_teacher, name='delete_teacher'),
     
-
     path('administrator/canteen/add', administrator_views.add_canteen, name='add_canteen'),
     path('administrator/canteen/view', administrator_views.view_canteen, name='view_canteen'),
     path('administrator/canteen/edit/<str:id>', administrator_views.edit_canteen, name='edit_canteen'),
@@ -62,6 +62,13 @@ urlpatterns = [
     path('administrator/subject/delete/<int:id>/', administrator_views.delete_subject, name='delete_subject'),
 
     path('administrator/send-notification/', administrator_views.send_teacher_notification, name='send_teacher_notification'),
+    path('administrator/send-student-notification/', administrator_views.send_student_notification, name='send_student_notification'),
+    path('administrator/send-canteen-notification/', administrator_views.send_canteen_notification, name='send_canteen_notification'),
+
+    path('administrator/feedback/teachers/', administrator_views.view_teacher_feedback, name='view_teacher_feedback'),
+    path('administrator/feedback/students/', administrator_views.view_student_feedback, name='view_student_feedback'),
+    path('administrator/feedback/canteen/', administrator_views.view_canteen_feedback, name='view_canteen_feedback'),
+    path('administrator/feedback/mark-read/<int:pk>/', administrator_views.mark_feedback_read, name='mark_feedback_read'),
 
     path('administrator/register-card/', administrator_views.register_card, name='register_card'),
     path('administrator/read-card/', administrator_views.read_card, name='read_card'),
@@ -101,6 +108,7 @@ urlpatterns = [
 
     path('teacher/notifications/', teacher_views.view_teacher_notifications, name='view_teacher_notifications'),
     path('teacher/notifications/mark-as-read/<int:notification_id>/', teacher_views.mark_notification_as_read, name='mark_notification_as_read'),
+    path('teacher/feedback/', teacher_views.send_teacher_feedback, name='send_teacher_feedback'),
     
     #Student page URL
     path('student/home', student_views.home, name='student_home'),
@@ -111,6 +119,10 @@ urlpatterns = [
     path('student/timetable/view', student_views.view_timetable, name='student_view_timetable'),
     path('student/attendance/', student_views.student_attendance, name='student_attendance'),
     path('student/view-account-balance/', student_views.view_account_balance, name='view_account_balance'),
+
+    path('student/notifications/', student_views.view_student_notifications, name='view_student_notifications'),
+    path('student/notifications/mark-as-read/<int:notification_id>/', student_views.mark_notification_as_read, name='mark_student_notification_as_read'),
+    path('student/feedback/', student_views.send_student_feedback, name='send_student_feedback'),
 
     #Canteen page URL
     path('canteen/home', canteen_views.home, name='canteen_home'),
@@ -123,6 +135,10 @@ urlpatterns = [
 
     path('canteen/process-payment/', canteen_views.process_payment, name='process_payment'),
     path('canteen/transaction-history/', canteen_views.transaction_history, name='transaction_history'),
+
+    path('canteen/notifications/', canteen_views.view_canteen_notifications, name='view_canteen_notifications'),
+    path('canteen/notifications/mark-as-read/<int:notification_id>/', canteen_views.mark_notification_as_read, name='mark_canteen_notification_as_read'),
+    path('canteen/feedback/', canteen_views.send_canteen_feedback, name='send_canteen_feedback'),
 
 ]   + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
 

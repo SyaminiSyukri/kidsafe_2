@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.contrib.auth.decorators import login_required
-from kidsafe_app.models import CustomUser, Classroom, Student, Teacher, Subject, ExamTitle, ExamResult, Timetable, Attendance, TeacherNotification
+from kidsafe_app.models import CustomUser, Classroom, Student, Teacher, Subject, ExamTitle, ExamResult, Timetable, Attendance, TeacherNotification, FeedbackToAdmin
 from django.contrib import messages
 from django.db.models import F
 from django.db.models import Sum
@@ -501,3 +501,23 @@ def mark_notification_as_read(request, notification_id):
     notification.read = True
     notification.save()
     return redirect('view_teacher_notifications')
+
+
+@login_required
+def send_teacher_feedback(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        message = request.POST.get('message')
+        attachment = request.FILES.get('attachment')
+        
+        FeedbackToAdmin.objects.create(
+            sender=request.user,
+            sender_type='teacher',
+            title=title,
+            message=message,
+            attachment=attachment
+        )
+        messages.success(request, 'Feedback sent to admin!')
+        return redirect('send_teacher_feedback')
+    
+    return render(request, 'teacher/send_feedback.html')
