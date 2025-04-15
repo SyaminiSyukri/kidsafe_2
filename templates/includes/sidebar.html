@@ -11,11 +11,14 @@
                 <li class="menu-title">
                     <span>Manage Users</span>
                 </li>
+                <li class="{% active_link 'view_admin' 'active' %}">
+                    <a href="{% url 'view_admin' %}"><i class="fas fa-user"></i> <span>Administrator</span></a>
+                </li>
                 <li class="{% active_link 'view_teacher' 'active' %}">
-                    <a href="{% url 'view_teacher' %}"><i class="fas fa-chalkboard-teacher"></i> <span>Teachers</span></a>
+                    <a href="{% url 'view_teacher' %}"><i class="fas fa-chalkboard-teacher"></i> <span>Teacher</span></a>
                 </li>
                 <li class="{% active_link 'view_student' 'active' %}">
-                    <a href="{% url 'view_student' %}"><i class="fas fa-user-graduate"></i> <span>Students</span></a>
+                    <a href="{% url 'view_student' %}"><i class="fas fa-user-graduate"></i> <span>Student</span></a>
                 </li>
                 <li class="{% active_link 'view_canteen' 'active' %}">
                     <a href="{% url 'view_canteen' %}"><i class="fas fa-utensils"></i> <span>Canteen</span></a>

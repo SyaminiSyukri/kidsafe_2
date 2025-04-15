@@ -6,7 +6,7 @@ from kidsafe_app.models import Card, StudentAccount, InventoryItem, Dietary, Tra
 from decimal import Decimal, InvalidOperation
 from django.utils import timezone
 from datetime import datetime
-
+ 
 import json
 
 
@@ -29,7 +29,6 @@ def add_inventory_item(request):
     if request.method == 'POST':
         name = request.POST.get('name')
         image = request.FILES.get('image')
-        quantity = request.POST.get('quantity')
         price = request.POST.get('price')
         description = request.POST.get('description')
         allergies = request.POST.get('allergies')
@@ -38,7 +37,6 @@ def add_inventory_item(request):
         InventoryItem.objects.create(
             name=name,
             image=image,
-            quantity=quantity,
             price=price,
             description=description,
             allergies=allergies,
@@ -55,7 +53,6 @@ def edit_inventory_item(request, item_id):
     if request.method == 'POST':
         item.name = request.POST.get('name')
         item.image = request.FILES.get('image', item.image)
-        item.quantity = request.POST.get('quantity')
         item.price = request.POST.get('price')
         item.description = request.POST.get('description')
         item.allergies = request.POST.get('allergies')

@@ -1,6 +1,7 @@
 import logging
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import make_password
 from kidsafe_app.models import Classroom, CustomUser, Student, Teacher, Canteen, Subject, Card, Attendance, StudentAccount, TeacherNotification, StudentNotification, CanteenNotification, FeedbackToAdmin
 from django.contrib import messages
 from django.utils import timezone
@@ -45,6 +46,107 @@ def home(request):
         'total_inactive_cards': total_inactive_cards,
     }
     return render(request, 'administrator/home.html', context)
+
+
+@login_required(login_url='/')
+def add_admin(request):
+    if request.method == "POST":
+        profile_pic = request.FILES.get('profile_pic')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        if CustomUser.objects.filter(email=email).exists():
+            messages.warning(request, 'Email Is Already Taken')
+            return redirect('add_admin')
+        
+        if CustomUser.objects.filter(username=username).exists():
+            messages.warning(request, 'Username Is Already Taken')
+            return redirect('add_admin')
+        
+        else:
+            user = CustomUser(
+                first_name=first_name,
+                last_name=last_name,
+                username=username,
+                email=email,
+                profile_pic=profile_pic,
+                user_type=1,  # 1 for Administrator
+                is_staff=True,  # Give staff permissions
+                is_superuser=True  # Give superuser permissions
+            )
+            user.set_password(password)
+            user.save()
+            messages.success(request, f'Admin {user.first_name} {user.last_name} Successfully Added!')
+            return redirect('view_admin')
+
+    return render(request, 'administrator/add_admin.html')
+
+@login_required(login_url='/')
+def view_admin(request):
+    # Get all users with user_type=1 (Administrators)
+    admins = CustomUser.objects.filter(user_type=1).order_by('first_name')
+    
+    context = {
+        'admins': admins,
+    }
+    return render(request, 'administrator/view_admin.html', context)
+
+@login_required(login_url='/')
+def edit_admin(request, id):
+    admin = get_object_or_404(CustomUser, id=id, user_type=1)
+    
+    if request.method == "POST":
+        profile_pic = request.FILES.get('profile_pic')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        # Check if email is changed and already exists
+        if email != admin.email and CustomUser.objects.filter(email=email).exclude(id=admin.id).exists():
+            messages.warning(request, 'Email Is Already Taken')
+            return redirect('edit_admin', id=id)
+        
+        # Check if username is changed and already exists
+        if username != admin.username and CustomUser.objects.filter(username=username).exclude(id=admin.id).exists():
+            messages.warning(request, 'Username Is Already Taken')
+            return redirect('edit_admin', id=id)
+
+        admin.first_name = first_name
+        admin.last_name = last_name
+        admin.email = email
+        admin.username = username
+
+        if password:
+            admin.set_password(password)
+
+        if profile_pic:
+            admin.profile_pic = profile_pic
+
+        admin.save()
+        messages.success(request, 'Admin updated successfully!')
+        return redirect('view_admin')
+
+    context = {
+        'admin': admin,
+    }
+    return render(request, 'administrator/edit_admin.html', context)
+
+@login_required(login_url='/')
+def delete_admin(request, id):
+    # Prevent deleting yourself
+    if request.user.id == int(id):
+        messages.error(request, 'You cannot delete your own account!')
+        return redirect('view_admin')
+    
+    admin = get_object_or_404(CustomUser, id=id, user_type=1)
+    admin.delete()
+    messages.success(request, 'Admin deleted successfully!')
+    return redirect('view_admin')
 
 #STUDENT
 @login_required(login_url='/')
@@ -118,6 +220,7 @@ def view_student(request):
             ) | students.filter(
                 admin__last_name__icontains=search_query
             )
+            
         if students.exists():
             students_by_classroom[classroom] = students
     

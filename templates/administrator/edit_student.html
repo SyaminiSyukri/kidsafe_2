@@ -46,7 +46,7 @@
                                     </div>
                                     <div class="col-md-1">
                                         {% if student.admin.profile_pic %}
-                                            <a href="{% url 'profile_delete' student.admin.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete the profile picture?');">
+                                            <a href="{% url 'profile_delete' student.admin.id %}?next={{ request.path }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete the profile picture?');">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         {% endif %}

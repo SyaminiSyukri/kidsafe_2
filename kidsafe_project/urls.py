@@ -38,6 +38,11 @@ urlpatterns = [
     #Administrator page URL
     path('administrator/home', administrator_views.home, name='admin_home'),
 
+    path('administrator/admin/add', administrator_views.add_admin, name='add_admin'),
+    path('administrator/admin/view', administrator_views.view_admin, name='view_admin'),
+    path('administrator/admin/edit/<str:id>', administrator_views.edit_admin, name='edit_admin'),
+    path('administrator/admin/delete/<str:id>', administrator_views.delete_admin, name='delete_admin'),
+
     path('administrator/student/add', administrator_views.add_student, name='add_student'),
     path('administrator/student/view', administrator_views.view_student, name='view_student'),
     path('administrator/student/edit/<str:id>', administrator_views.edit_student, name='edit_student'),

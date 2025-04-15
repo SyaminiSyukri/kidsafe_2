@@ -128,12 +128,11 @@ class StudentAccount(models.Model):
 
     def __str__(self):
         return f"{self.student.admin.first_name} {self.student.admin.last_name} - Balance: {self.balance}"
-    
+     
 
 class InventoryItem(models.Model):
     name = models.CharField(max_length=100, unique=True)
     image = models.ImageField(upload_to='media/inventory_images/', blank=True, null=True)
-    quantity = models.PositiveIntegerField(default=0)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField(blank=True, null=True)
     allergies = models.CharField(max_length=100,blank=True, null=True) 

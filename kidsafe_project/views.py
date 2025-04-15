@@ -95,7 +95,7 @@ def profile_delete(request, user_id):
         return redirect('profile')
 
     # Fetch the user whose profile picture is being deleted
-    user = get_object_or_404(CustomUser, id=user_id)
+    user = get_object_or_404(CustomUser , id=user_id)
 
     # Delete the profile picture if it exists
     if user.profile_pic:
@@ -106,15 +106,8 @@ def profile_delete(request, user_id):
     else:
         messages.warning(request, 'No profile picture to delete.')
 
-    # Redirect back to the appropriate page based on user type
-    if request.user.user_type == '1':  # Admin
-        return redirect('edit_student', id=user.student.id)
-    elif request.user.user_type == '2':  # Teacher
-        return redirect('profile')
-    elif request.user.user_type == '3':  # Student
-        return redirect('profile')
-    else:
-        return redirect('profile')  # Fallback for other user types
-    
+    # Redirect back to the page specified in the 'next' parameter or fallback to profile
+    next_url = request.GET.get('next', 'profile')
+    return redirect(next_url)
 
 
