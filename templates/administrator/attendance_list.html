@@ -30,7 +30,7 @@
                             <input type="text" name="search" class="form-control" placeholder="Search by student name" value="{{ request.GET.search }}">
                         </div>
                         <div class="col-md-4">
-                            <button class="btn btn-primary" type="submit">Search</button>
+                            <button class="btn btn-primary" type="submit">Filter</button>
                             <a href="{% url 'attendance_list' %}?date={{ selected_date }}" class="btn btn-secondary flex-grow-1">Clear</a>
                             <a href="{% url 'attendance_list' %}" class="btn btn-secondary flex-grow-1"><i class="fas fa-sync-alt"></i></a>
                             <!--<button class="btn btn-secondary ml-2" type="button" id="refresh-button">
