@@ -1,0 +1,54 @@
+If you get Server Error (500), you need to create your .env file
+
+------------------------------------------------------------
+
+1. Create .env File
+- Navigate to your project's root directory (where manage.py is located).
+- Create a new file named .env
+
+2. Add Sensitive Variables to .env
+-Open .env in a text editor and paste this code (replace values with your actual ones)
+
+# Email settings (Gmail example)
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your_email@gmail.com
+EMAIL_HOST_PASSWORD=your_app_password
+
+SECRET_KEY='django-insecure-5i(rtogbnt!xj-5s$z^usdvwewn@3j^mfpwhd=buxdb3bdw-d+'
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1
+
+
+---------------------------------------------------------
+
+
+For email host user and password, you need to create App Password for email account to test for forget password in login page. 
+
+
+1. Set Up Email Backend (Gmail Example)
+Enable App Password in Gmail
+
+- Go to Google Account Security.
+- Enable 2-Step Verification (if not already).
+- Under "App passwords," generate a new app password (select "Mail" and "Other").
+- Copy the generated 16-digit password.
+
+2. Add to .env
+
+# Email Configuration (Gmail SMTP)
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=yourname@gmail.com  # Your Gmail
+EMAIL_HOST_PASSWORD=abcd efgh ijkl mnop  # App password (no spaces)
+
+
+---------------------------------------------------------
+
+or refer to this video
+https://www.youtube.com/watch?v=-tyBEsHSv7w
+https://www.youtube.com/watch?v=sFPcd6myZrY&t=596s
