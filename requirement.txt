@@ -1,6 +1,6 @@
 If you get Server Error (500), you need to create your .env file
 
-------------------------------------------------------------
+-----------------------------------------------------------------
 
 1. Create .env File
 - Navigate to your project's root directory (where manage.py is located).
@@ -17,12 +17,7 @@ EMAIL_USE_TLS=True
 EMAIL_HOST_USER=your_email@gmail.com
 EMAIL_HOST_PASSWORD=your_app_password
 
-SECRET_KEY='django-insecure-5i(rtogbnt!xj-5s$z^usdvwewn@3j^mfpwhd=buxdb3bdw-d+'
-DEBUG=True
-ALLOWED_HOSTS=127.0.0.1
-
-
----------------------------------------------------------
+-----------------------------------------------------------------
 
 
 For email host user and password, you need to create App Password for email account to test for forget password in login page. 
