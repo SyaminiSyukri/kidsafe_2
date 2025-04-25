@@ -6,27 +6,42 @@ from kidsafe_app.models import Card, StudentAccount, InventoryItem, Dietary, Tra
 from decimal import Decimal, InvalidOperation
 from django.utils import timezone
 from datetime import datetime
- 
 import json
-
 
 @login_required(login_url='/')
 def home(request):
+    """Render the canteen staff dashboard/home page."""
     return render(request, 'canteen/home.html')
+
 
 @login_required(login_url='/')
 def inventory_management(request):
+    """
+    Display all inventory items sorted by name.
+    Used for viewing and managing the canteen's product inventory.
+    """
     inventory_items = InventoryItem.objects.all().order_by('name')
     return render(request, 'canteen/inventory_management.html', {'inventory_items': inventory_items})
 
+
 @login_required(login_url='/')
 def inventory_item_detail(request, item_id):
+    """
+    Show detailed information about a specific inventory item.
+    Includes all item attributes like price, description, dietary info.
+    """
     item = get_object_or_404(InventoryItem, id=item_id)
     return render(request, 'canteen/inventory_item_detail.html', {'item': item})
 
+
 @login_required(login_url='/')
 def add_inventory_item(request):
+    """
+    Handle creation of new inventory items.
+    Processes form data and creates new InventoryItem record.
+    """
     if request.method == 'POST':
+        # Extract all form data
         name = request.POST.get('name')
         image = request.FILES.get('image')
         price = request.POST.get('price')
@@ -34,6 +49,7 @@ def add_inventory_item(request):
         allergies = request.POST.get('allergies')
         restrictions = request.POST.get('restrictions')
 
+        # Create new inventory item with provided data
         InventoryItem.objects.create(
             name=name,
             image=image,
@@ -49,10 +65,15 @@ def add_inventory_item(request):
 
 @login_required(login_url='/')
 def edit_inventory_item(request, item_id):
+    """
+    Handle updating existing inventory items.
+    Supports partial updates (e.g., changing just the price or image).
+    """
     item = get_object_or_404(InventoryItem, id=item_id)
     if request.method == 'POST':
+        # Update item fields with new values (keeping old ones if not provided)
         item.name = request.POST.get('name')
-        item.image = request.FILES.get('image', item.image)
+        item.image = request.FILES.get('image', item.image)  # Keep existing image if new one not provided
         item.price = request.POST.get('price')
         item.description = request.POST.get('description')
         item.allergies = request.POST.get('allergies')
@@ -65,6 +86,10 @@ def edit_inventory_item(request, item_id):
 
 @login_required(login_url='/')
 def delete_inventory_item(request, item_id):
+    """
+    Handle deletion of inventory items.
+    Uses POST method to prevent accidental deletions via GET requests.
+    """
     item = get_object_or_404(InventoryItem, id=item_id)
     if request.method == 'POST':
         item.delete()
@@ -74,16 +99,22 @@ def delete_inventory_item(request, item_id):
 
 @login_required(login_url='/')
 def process_payment(request):
+    """
+    Handle student payment processing in the canteen.
+    Supports both checking balance and making purchases.
+    Returns JSON response for AJAX calls from the frontend.
+    """
     if request.method == 'POST':
         card_id = request.POST.get('card_id')
         amount = request.POST.get('amount')
-        items = request.POST.get('items')  # Get the cart items as JSON
+        items = request.POST.get('items')  # Cart items as JSON string
 
         try:
+            # Retrieve student card and associated account
             card = Card.objects.get(card_id=card_id)
             student_account = StudentAccount.objects.get(student=card.student)
 
-            # Fetch dietary details for the student
+            # Fetch dietary restrictions for the student (for food safety)
             dietary_details = Dietary.objects.filter(student=card.student).first()
             food_allergy = dietary_details.food_allergy if dietary_details else None
             dietary_restriction = dietary_details.dietary_restriction if dietary_details else None
@@ -91,23 +122,26 @@ def process_payment(request):
             if amount:
                 try:
                     amount_decimal = Decimal(amount)
+                    # Validate amount is positive
                     if amount_decimal < 0:
                         return JsonResponse({'success': False, 'error': 'Amount cannot be negative.'})
 
+                    # Check sufficient balance
                     if student_account.balance < amount_decimal:
                         return JsonResponse({'success': False, 'error': 'Insufficient balance.'})
 
+                    # Deduct amount from account
                     student_account.balance -= amount_decimal
                     student_account.save()
 
-                    # Parse the cart items and format them as a string
-                    cart_items = json.loads(items)  # Parse the JSON string into a Python list
+                    # Parse and format cart items for transaction record
+                    cart_items = json.loads(items)  # Convert JSON string to Python list
                     formatted_items = ", ".join([f"{item['name'].strip()} (x{item['quantity']})" for item in cart_items])
 
-                    # Record the transaction
+                    # Record transaction
                     Transaction.objects.create(
                         student=card.student,
-                        items=formatted_items,  # Store formatted items
+                        items=formatted_items,
                         total_amount=amount_decimal,
                     )
 
@@ -122,6 +156,7 @@ def process_payment(request):
                 except InvalidOperation:
                     return JsonResponse({'success': False, 'error': 'Invalid amount. Please enter a valid number.'})
             else:
+                # If no amount provided, just return student info (balance check)
                 return JsonResponse({
                     'success': True,
                     'student_name': f"{card.student.admin.first_name} {card.student.admin.last_name}",
@@ -137,28 +172,32 @@ def process_payment(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-    # Fetch inventory items for the dropdown
+    # GET request - show payment page with inventory items
     inventory_items = InventoryItem.objects.all().order_by('name')
     return render(request, 'canteen/process_payment.html', {'inventory_items': inventory_items})
 
 
 @login_required(login_url='/')
 def transaction_history(request):
-    # Default to today's date if no date is selected
+    """
+    Display transaction history with date filtering and search capabilities.
+    Defaults to showing today's transactions if no date is specified.
+    """
+    # Get filter parameters from request
     selected_date = request.GET.get('date', timezone.localdate().isoformat())
-    search_query = request.GET.get('search', '')  # Get the search query for student name
+    search_query = request.GET.get('search', '')  # For student name search
 
     try:
-        # Convert the selected date string to a datetime object
+        # Convert date string to date object
         filter_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
     except ValueError:
-        # Handle invalid date format
+        # Fallback to today's date if invalid format
         filter_date = timezone.localdate()
 
-    # Fetch transactions for the selected date
+    # Base query - transactions for selected date
     transactions = Transaction.objects.filter(transaction_date__date=filter_date).select_related('student__admin', 'student__classroom_id')
 
-    # Apply search filter (by student name)
+    # Apply name search if query exists
     if search_query:
         transactions = transactions.filter(
             student__admin__first_name__icontains=search_query
@@ -169,17 +208,21 @@ def transaction_history(request):
     context = {
         'transactions': transactions,
         'selected_date': selected_date,
-        'search_query': search_query,  # Pass the search query to the template
+        'search_query': search_query,
     }
     return render(request, 'canteen/transaction_history.html', context)
 
 
 @login_required(login_url='/')
 def view_canteen_notifications(request):
-    canteen = Canteen.objects.get(admin=request.user)  # Get the logged-in canteen staff
+    """
+    Display notifications for canteen staff.
+    Shows both read and unread notifications, with unread count.
+    """
+    canteen = Canteen.objects.get(admin=request.user)  # Get current canteen staff
     notifications = CanteenNotification.objects.filter(canteen=canteen).order_by('-created_at')
     
-    # Count unread notifications
+    # Count unread notifications for badge display
     unread_count = CanteenNotification.objects.filter(canteen=request.user.canteen, read=False).count()
 
     context = {
@@ -191,6 +234,10 @@ def view_canteen_notifications(request):
 
 @login_required(login_url='/')
 def mark_notification_as_read(request, notification_id):
+    """
+    Mark a specific notification as read.
+    Typically called via AJAX when user views a notification.
+    """
     notification = get_object_or_404(CanteenNotification, id=notification_id)
     notification.read = True
     notification.save()
@@ -199,6 +246,10 @@ def mark_notification_as_read(request, notification_id):
 
 @login_required
 def send_canteen_feedback(request):
+    """
+    Handle sending feedback from canteen staff to admin.
+    Supports text messages and optional file attachments.
+    """
     if request.method == 'POST':
         FeedbackToAdmin.objects.create(
             sender=request.user,

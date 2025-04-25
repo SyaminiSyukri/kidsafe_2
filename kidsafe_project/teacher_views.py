@@ -2,40 +2,41 @@ from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.contrib.auth.decorators import login_required
 from kidsafe_app.models import CustomUser, Classroom, Student, Teacher, Subject, ExamTitle, ExamResult, Timetable, Attendance, TeacherNotification, FeedbackToAdmin
 from django.contrib import messages
-from django.db.models import F
-from django.db.models import Sum
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils import timezone
 from datetime import datetime
 
 
 @login_required(login_url='/')
 def home(request):
-    # Fetch the logged-in teacher's details
+    """
+    Teacher dashboard view showing:
+    - Teacher information
+    - Classroom statistics (total students, present/absent counts)
+    """
     try:
-        teacher = Teacher.objects.get(admin=request.user)  # Get the teacher object linked to the logged-in user
+        # Get the teacher object linked to the logged-in user
+        teacher = Teacher.objects.get(admin=request.user)
     except Teacher.DoesNotExist:
         return HttpResponse("Teacher details not found.", status=404)
 
-    # Fetch the teacher's classroom
+    # Get the teacher's assigned classroom
     classroom = teacher.classroom_id
 
-    # Calculate total students in the classroom
+    # Calculate classroom statistics
     total_students = Student.objects.filter(classroom_id=classroom).count()
-
-    # Calculate total present students (students who have scanned their attendance today)
+    
+    # Get today's attendance data
     today = timezone.now().date()
     total_present = Attendance.objects.filter(
         student__classroom_id=classroom,
         arrival_time__date=today,
-        departure_time__isnull=True  # Students who are still in school
+        departure_time__isnull=True  # Only count students currently in school
     ).count()
-
-    # Calculate total absent students
-    total_absent = total_students - total_present
+    
+    total_absent = total_students - total_present  # Calculate absentees
 
     context = {
-        'teacher': teacher,  # Pass the teacher object to the template
+        'teacher': teacher,
         'total_students': total_students,
         'total_present': total_present,
         'total_absent': total_absent,
@@ -45,16 +46,19 @@ def home(request):
 
 @login_required(login_url='/')
 def view_student(request):
+    """
+    Display list of students in teacher's classroom with search functionality.
+    """
     teacher = Teacher.objects.get(admin=request.user)
     classroom = teacher.classroom_id
 
-    # Get the search query from the request
+    # Get search query from request
     search_query = request.GET.get('search', '')
 
-    # Fetch students in the teacher's classroom
+    # Base query - all students in teacher's classroom
     students = Student.objects.filter(classroom_id=classroom)
 
-    # Apply search filter (by student name)
+    # Apply name search filter if query exists
     if search_query:
         students = students.filter(
             admin__first_name__icontains=search_query
@@ -62,25 +66,30 @@ def view_student(request):
             admin__last_name__icontains=search_query
         )
 
-    # Add a warning message if no students are found
-    if search_query and not students.exists():
-        messages.warning(request, f'No students found: {search_query}')
+        # Show warning if no results found
+        if search_query and not students.exists():
+            messages.warning(request, f'No students found: {search_query}')
 
     context = {
         'teacher': teacher,
         'classroom': classroom,
         'students': students,
-        'search_query': search_query,  # Pass the search query to the template
+        'search_query': search_query,
     }
     return render(request, 'teacher/view_student.html', context)
 
 
 @login_required(login_url='/')
 def add_student(request):
+    """
+    Handle new student creation for teacher's classroom.
+    Includes validation for unique email/username.
+    """
     teacher = Teacher.objects.get(admin=request.user)
     classroom = teacher.classroom_id 
 
     if request.method == "POST":
+        # Extract all form data
         profile_pic = request.FILES.get('profile_pic')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
@@ -89,59 +98,69 @@ def add_student(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
+        # Validate unique email
         if CustomUser.objects.filter(email=email).exists():
             messages.warning(request, 'Email Is Already Taken')
             return redirect('teacher_add_student')
         
+        # Validate unique username
         if CustomUser.objects.filter(username=username).exists():
             messages.warning(request, 'Username Is Already Taken')
             return redirect('teacher_add_student') 
         
-        else:
-            user = CustomUser(
-                first_name=first_name,
-                last_name=last_name,
-                username=username,
-                email=email,
-                profile_pic=profile_pic,
-                user_type=3  # Student
-            )
-            user.set_password(password)
-            user.save()
+        # Create new user and student record
+        user = CustomUser(
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            email=email,
+            profile_pic=profile_pic,
+            user_type=3  # Student type
+        )
+        user.set_password(password)
+        user.save()
 
-            student = Student(
-                admin=user,
-                gender=gender,
-                classroom_id=classroom,
-            )
-            student.save()
-            messages.success(request, user.first_name + " " + user.last_name + ' Successfully Added!')
-            return redirect('teacher_view_student')
+        student = Student(
+            admin=user,
+            gender=gender,
+            classroom_id=classroom,
+        )
+        student.save()
+        messages.success(request, f'{user.first_name} {user.last_name} Successfully Added!')
+        return redirect('teacher_view_student')
 
     context = {
-        'classroom': classroom,  # Pass the teacher's classroom to the template
+        'classroom': classroom,
     }
-
     return render(request, 'teacher/add_student.html', context)
 
 
 @login_required(login_url='/')
 def edit_student(request, id):
+    """
+    Display student edit form.
+    Ensures teacher can only edit students in their classroom.
+    """
     teacher = Teacher.objects.get(admin=request.user)
     student = get_object_or_404(Student, id=id, classroom_id=teacher.classroom_id)
 
     context = {
-        'student': student,  # Pass a single student object
+        'student': student,
     }
     return render(request, 'teacher/edit_student.html', context)
 
 
 @login_required(login_url='/')
 def update_student(request):
+    """
+    Handle student record updates.
+    Supports partial updates (password/profile pic optional).
+    """
     if request.method == "POST":
         student_id = request.POST.get('student_id')
         student = get_object_or_404(Student, id=student_id, classroom_id=request.user.teacher.classroom_id)
 
+        # Extract form data
         profile_pic = request.FILES.get('profile_pic')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
@@ -151,6 +170,7 @@ def update_student(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
+        # Update user record
         user = student.admin
         user.first_name = first_name
         user.last_name = last_name
@@ -163,13 +183,13 @@ def update_student(request):
             user.profile_pic = profile_pic
         user.save()
 
+        # Update student record
         student.gender = gender
         classroom = Classroom.objects.get(id=classroom_id)
         student.classroom_id = classroom
         student.save()
 
-        # Include the student's name in the success message
-        messages.success(request, f'{user.first_name} {user.last_name}\'s record has been successfully updated!')
+        messages.success(request, f'{user.first_name} {user.last_name}\'s record updated!')
         return redirect('teacher_view_student')
 
     return redirect('teacher_view_student')
@@ -177,31 +197,36 @@ def update_student(request):
 
 @login_required(login_url='/')
 def delete_student(request, admin):
+    """
+    Delete student record.
+    Includes confirmation message with student name.
+    """
     student = get_object_or_404(Student, admin_id=admin, classroom_id=request.user.teacher.classroom_id)
     user = student.admin
 
-    # Include the student's name in the delete confirmation message
-    messages.success(request, f'{user.first_name} {user.last_name}\'s record has been successfully deleted!')
+    messages.success(request, f'{user.first_name} {user.last_name}\'s record deleted!')
     user.delete()
     return redirect('teacher_view_student')
 
 
 @login_required(login_url='/')
 def add_exam_title(request):
+    """
+    Manage exam titles (types of exams).
+    Shows existing titles and handles new title creation.
+    """
     if request.method == "POST":
-        title = request.POST.get('title')  # Get the exam title from the form
+        title = request.POST.get('title')
 
-        # Check if the title already exists
+        # Validate unique title
         if ExamTitle.objects.filter(title=title).exists():
             messages.warning(request, 'This exam title already exists.')
         else:
-            # Save the new exam title
-            exam_title = ExamTitle(title=title)
-            exam_title.save()
+            ExamTitle(title=title).save()
             messages.success(request, 'Exam Title Added Successfully!')
         return redirect('add_exam_result')
 
-    # Fetch all exam titles for display
+    # Get all exam titles sorted by creation date (newest first)
     exam_titles = ExamTitle.objects.all().order_by('-created_at')
     context = {
         'exam_titles': exam_titles,
@@ -211,6 +236,9 @@ def add_exam_title(request):
 
 @login_required(login_url='/')
 def delete_exam_title(request, id):
+    """
+    Delete an exam title.
+    """
     exam_title = get_object_or_404(ExamTitle, id=id)
     exam_title.delete()
     messages.success(request, 'Exam Title Deleted Successfully!')
@@ -219,79 +247,87 @@ def delete_exam_title(request, id):
 
 @login_required(login_url='/')
 def add_exam_result(request):
+    """
+    Add exam results for students.
+    Includes validation for marks range and duplicate entries.
+    """
     teacher = Teacher.objects.get(admin=request.user)
-    subjects = Subject.objects.all()  # Fetch all subjects
-    students = Student.objects.filter(classroom_id=teacher.classroom_id)  # Get students in the teacher's classroom
-    exam_titles = ExamTitle.objects.all()  # Fetch all exam titles
+    subjects = Subject.objects.all()
+    students = Student.objects.filter(classroom_id=teacher.classroom_id)
+    exam_titles = ExamTitle.objects.all()
 
     if request.method == "POST":
-        exam_title_id = request.POST.get('exam_title_id')  # Get the selected exam title ID
+        # Extract form data
+        exam_title_id = request.POST.get('exam_title_id')
         student_id = request.POST.get('student_id')
         subject_id = request.POST.get('subject_id')
-        marks = float(request.POST.get('marks'))  # Convert marks to float
+        marks = float(request.POST.get('marks'))
 
-        # Validate marks
+        # Validate marks range
         if marks < 0 or marks > 100:
             messages.warning(request, 'Marks must be between 0 and 100.')
             return redirect('add_exam_result')
 
-        # Fetch the student, subject, and exam title objects
+        # Get related objects
         student = Student.objects.get(id=student_id)
         subject = Subject.objects.get(id=subject_id)
         exam_title = ExamTitle.objects.get(id=exam_title_id)
 
-        # Check if the student has already taken this subject for the selected exam title
+        # Check for duplicate result entry
         if ExamResult.objects.filter(
             exam_title_id=exam_title_id,
             student_id=student_id,
             subject_id=subject_id
         ).exists():
-            # Create a descriptive error message
             error_message = (
-                f"{student.admin.first_name} {student.admin.last_name}'s {subject.name} results have been taken for {exam_title.title}"
+                f"{student.admin.first_name} {student.admin.last_name}'s "
+                f"{subject.name} results already exist for {exam_title.title}"
             )
             messages.warning(request, error_message)
             return redirect('add_exam_result')
 
-        # Save the exam result
-        exam_result = ExamResult(
+        # Save new exam result
+        ExamResult(
             exam_title_id=exam_title_id,
             student_id=student_id,
             subject_id=subject_id,
             marks=marks,
-        )
-        exam_result.save()
+        ).save()
 
-        # Create a descriptive success message
         success_message = (
             f"Exam result for {student.admin.first_name} {student.admin.last_name} "
-            f"in {subject.name} has been added successfully!"
+            f"in {subject.name} added successfully!"
         )
         messages.success(request, success_message)
         return redirect('view_exam_result')
 
     context = {
-        'subjects': subjects,  # Pass all subjects to the template
+        'subjects': subjects,
         'students': students,
-        'exam_titles': exam_titles,  # Pass all exam titles to the template
+        'exam_titles': exam_titles,
     }
     return render(request, 'teacher/add_exam_result.html', context)
 
 
 @login_required(login_url='/')
 def view_exam_result(request):
+    """
+    View exam results with filtering by exam title and student name search.
+    Results grouped by student and exam title.
+    """
     teacher = Teacher.objects.get(admin=request.user)
     classroom = teacher.classroom_id
     students = Student.objects.filter(classroom_id=classroom)
     exam_titles = ExamTitle.objects.all()
 
+    # Get filter parameters
     search_query = request.GET.get('search', '')
     exam_title_id = request.GET.get('exam_title_id')
 
-    # Fetch exam results for the teacher's classroom
+    # Base query - all results for teacher's students
     exam_results = ExamResult.objects.filter(student__in=students).select_related('student', 'subject', 'exam_title')
 
-    # Apply search filter (by student name)
+    # Apply filters
     if search_query:
         exam_results = exam_results.filter(
             student__admin__first_name__icontains=search_query
@@ -299,11 +335,10 @@ def view_exam_result(request):
             student__admin__last_name__icontains=search_query
         )
 
-    # Apply exam title filter
     if exam_title_id:
         exam_results = exam_results.filter(exam_title_id=exam_title_id)
 
-    # Group results by student name and then by exam title
+    # Group results by student name and exam title
     grouped_results = {}
     for result in exam_results:
         student_name = f"{result.student.admin.first_name} {result.student.admin.last_name}"
@@ -315,7 +350,7 @@ def view_exam_result(request):
             grouped_results[student_name][exam_title] = []
         grouped_results[student_name][exam_title].append(result)
 
-    # Sort grouped_results by student name (alphabetically)
+    # Sort results alphabetically by student name
     grouped_results = dict(sorted(grouped_results.items()))
 
     context = {
@@ -329,27 +364,29 @@ def view_exam_result(request):
 
 @login_required(login_url='/')
 def edit_exam_result(request, id):
+    """
+    Edit existing exam result.
+    Includes marks validation.
+    """
     exam_result = get_object_or_404(ExamResult, id=id)
     teacher = Teacher.objects.get(admin=request.user)
-    students = Student.objects.filter(classroom_id=teacher.classroom_id)  # Get students in the teacher's classroom
-    subjects = Subject.objects.all()  # Fetch all subjects
+    students = Student.objects.filter(classroom_id=teacher.classroom_id)
+    subjects = Subject.objects.all()
 
     if request.method == "POST":
+        # Extract form data
         student_id = request.POST.get('student_id')
         subject_id = request.POST.get('subject_id')
-        marks = float(request.POST.get('marks'))  # Convert marks to float
+        marks = float(request.POST.get('marks'))
 
         # Validate marks
         if marks < 0 or marks > 100:
             messages.warning(request, 'Marks must be between 0 and 100.')
             return redirect('edit_exam_result', id=id)
 
-        student = Student.objects.get(id=student_id)
-        subject = Subject.objects.get(id=subject_id)
-
-        # Update the exam result (excluding the exam title)
-        exam_result.student = student
-        exam_result.subject = subject
+        # Update exam result
+        exam_result.student = Student.objects.get(id=student_id)
+        exam_result.subject = Subject.objects.get(id=subject_id)
         exam_result.marks = marks
         exam_result.save()
 
@@ -366,6 +403,9 @@ def edit_exam_result(request, id):
 
 @login_required(login_url='/')
 def delete_exam_result(request, id):
+    """
+    Delete an exam result record.
+    """
     exam_result = get_object_or_404(ExamResult, id=id)
     exam_result.delete()
     messages.success(request, 'Exam Result Deleted Successfully!')
@@ -374,36 +414,36 @@ def delete_exam_result(request, id):
 
 @login_required(login_url='/')
 def teacher_view_attendance(request):
-    # Get the logged-in teacher
+    """
+    View classroom attendance with date filtering and student search.
+    Defaults to showing today's attendance.
+    """
     teacher = request.user.teacher
-
-    # Get the teacher's classroom
     classroom = teacher.classroom_id
 
-    # Get the date filter and student name search query from the request
+    # Get filter parameters
     date_filter = request.GET.get('date', '')
     student_name = request.GET.get('student_name', '')
 
-    # Fetch attendance records for students in the teacher's classroom
-    attendance_records = Attendance.objects.filter(student__classroom_id=classroom).order_by('-arrival_time')
+    # Base query - attendance for teacher's classroom
+    attendance_records = Attendance.objects.filter(
+        student__classroom_id=classroom
+    ).order_by('-arrival_time')
 
     # Apply date filter
     if date_filter:
         try:
-            # Convert the date string to a datetime object
             filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
-            # Filter records by the selected date
             attendance_records = attendance_records.filter(arrival_time__date=filter_date)
         except ValueError:
-            # Handle invalid date format
-            pass
+            pass  # Silently handle invalid date format
     else:
-        # Default to today's date in the server's timezone
-        today = timezone.localdate()  # Use localdate() to get the current date in the server's timezone
+        # Default to today's records
+        today = timezone.localdate()
         attendance_records = attendance_records.filter(arrival_time__date=today)
-        date_filter = today.isoformat()  # Set the default date to today
+        date_filter = today.isoformat()
 
-    # Apply student name filter (only after date filter is applied)
+    # Apply student name filter
     if student_name:
         attendance_records = attendance_records.filter(
             student__admin__first_name__icontains=student_name
@@ -413,14 +453,17 @@ def teacher_view_attendance(request):
 
     context = {
         'attendance_records': attendance_records,
-        'selected_date': date_filter,  # Pass the selected date to the template
-        'classroom': classroom,  # Pass the classroom to the template
+        'selected_date': date_filter,
+        'classroom': classroom,
     }
     return render(request, 'teacher/teacher_view_attendance.html', context)
 
 
 @login_required(login_url='/')
 def add_timetable(request):
+    """
+    Add new timetable for teacher's classroom.
+    """
     teacher = Teacher.objects.get(admin=request.user)
     classroom = teacher.classroom_id
 
@@ -428,13 +471,12 @@ def add_timetable(request):
         title = request.POST.get('title')
         timetable_image = request.FILES.get('timetable_image')
 
-        timetable = Timetable(
+        Timetable(
             teacher=teacher,
             classroom=classroom,
             title=title,
             timetable_image=timetable_image,
-        )
-        timetable.save()
+        ).save()
         messages.success(request, 'Timetable added successfully!')
         return redirect('view_timetable')
 
@@ -443,6 +485,9 @@ def add_timetable(request):
 
 @login_required(login_url='/')
 def view_timetable(request):
+    """
+    View all timetables created by the teacher.
+    """
     teacher = Teacher.objects.get(admin=request.user)
     timetables = Timetable.objects.filter(teacher=teacher)
 
@@ -454,6 +499,9 @@ def view_timetable(request):
 
 @login_required(login_url='/')
 def edit_timetable(request, id):
+    """
+    Edit existing timetable.
+    """
     timetable = get_object_or_404(Timetable, id=id, teacher__admin=request.user)
 
     if request.method == "POST":
@@ -475,6 +523,9 @@ def edit_timetable(request, id):
 
 @login_required(login_url='/')
 def delete_timetable(request, id):
+    """
+    Delete a timetable.
+    """
     timetable = get_object_or_404(Timetable, id=id, teacher__admin=request.user)
     timetable.delete()
     messages.success(request, 'Timetable deleted successfully!')
@@ -483,20 +534,27 @@ def delete_timetable(request, id):
 
 @login_required(login_url='/')
 def view_teacher_notifications(request):
-    teacher = Teacher.objects.get(admin=request.user)  # Get the logged-in teacher
+    """
+    View teacher notifications with unread count.
+    """
+    teacher = Teacher.objects.get(admin=request.user)
     notifications = TeacherNotification.objects.filter(teacher=teacher).order_by('-created_at')
     
-    # Count unread notifications
+    # Calculate unread notifications count
     unread_count = TeacherNotification.objects.filter(teacher=teacher, read=False).count()
 
     context = {
         'notifications': notifications,
-        'unread_count': unread_count,  # Pass the unread count to the template
+        'unread_count': unread_count,
     }
     return render(request, 'teacher/view_teacher_notifications.html', context)
 
+
 @login_required(login_url='/')
 def mark_notification_as_read(request, notification_id):
+    """
+    Mark a notification as read.
+    """
     notification = get_object_or_404(TeacherNotification, id=notification_id)
     notification.read = True
     notification.save()
@@ -505,17 +563,17 @@ def mark_notification_as_read(request, notification_id):
 
 @login_required
 def send_teacher_feedback(request):
+    """
+    Handle teacher feedback submission to admin.
+    Supports text and file attachments.
+    """
     if request.method == 'POST':
-        title = request.POST.get('title')
-        message = request.POST.get('message')
-        attachment = request.FILES.get('attachment')
-        
         FeedbackToAdmin.objects.create(
             sender=request.user,
             sender_type='teacher',
-            title=title,
-            message=message,
-            attachment=attachment
+            title=request.POST.get('title'),
+            message=request.POST.get('message'),
+            attachment=request.FILES.get('attachment')
         )
         messages.success(request, 'Feedback sent to admin!')
         return redirect('send_teacher_feedback')
