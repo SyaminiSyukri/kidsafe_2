@@ -19,16 +19,38 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-5i(rtogbnt!xj-5s$z^usdvwewn@3j^mfpwhd=buxdb3bdw-d+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','192.168.100.235','192.168.233.122']
+ALLOWED_HOSTS = ['127.0.0.1', '192.168.100.16']
+
+# Session configurations
+SESSION_COOKIE_NAME = 'kidsafe_sessionid'
+SESSION_COOKIE_AGE = 1209600
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'  # Prevents CSRF attacks
+SESSION_SAVE_EVERY_REQUEST = True  # Helps prevent session timeout
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep session after browser close
+
+# Use database-backed sessions for better reliability
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# Cache settings (optional but recommended for production)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
+# Session handling with multiple users
+CSRF_COOKIE_NAME = 'kidsafe_csrftoken'
+CSRF_COOKIE_SECURE = False 
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 
 # Application definition
@@ -52,7 +74,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'kidsafe_app.middleware.SessionVerificationMiddleware',
 ]
+
 
 ROOT_URLCONF = 'kidsafe_project.urls'
 
@@ -78,7 +102,6 @@ WSGI_APPLICATION = 'kidsafe_project.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
     'default': {
@@ -89,7 +112,6 @@ DATABASES = {
 
 
 # Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -108,7 +130,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -119,19 +140,15 @@ USE_TZ = True
 USE_I18N = True
 
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-#STATIC_ROOT = 'static/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

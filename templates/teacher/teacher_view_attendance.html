@@ -22,7 +22,7 @@
 
                 <!-- Search and Filter Bar -->
                 <div class="row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-4 mb-2">
                         <form method="GET" action="{% url 'teacher_view_attendance' %}">
                             <div class="input-group">
                                 <input type="date" name="date" class="form-control" value="{{ selected_date }}">
@@ -33,7 +33,7 @@
                         </form>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-6 mb-2">
                         <form method="GET" action="{% url 'teacher_view_attendance' %}">
                             <div class="input-group">
                                 <input type="text" name="student_name" class="form-control" placeholder="Search by student name" value="{{ request.GET.student_name }}">

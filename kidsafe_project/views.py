@@ -16,30 +16,41 @@ def LOGIN(request):
 
 def doLogin(request):
     if request.method == "POST":
-        user = emailbackend.authenticate(request,
-                                         username = request.POST.get('email'),
-                                         password = request.POST.get('password'),)
-        if user!=None:
-            login(request,user)
-            user_type = user.user_type
-            if user_type == '1':
-                return redirect ('admin_home')
-            elif user_type == '2':
-                return redirect ('teacher_home')
-            elif user_type == '3':
-                return redirect ('student_home')
-            elif user_type == '4':
-                return redirect ('canteen_home')
-            else:
-                messages.error(request, 'Email and Password Are Invalid!')
-                return redirect ('login')
+        # Clear any existing session data before new login
+        request.session.flush()
+        
+        user = emailbackend.authenticate(
+            request,
+            username=request.POST.get('email'),
+            password=request.POST.get('password'),
+        )
+        
+        if user is not None:
+            login(request, user)
+            # Store user-specific data in session
+            request.session['user_id'] = user.id
+            request.session['user_type'] = user.user_type
+            request.session.set_expiry(1209600)  # 2 weeks
             
-        else:
-            messages.error(request, 'Email and Password Are Invalid!')
-            return redirect('login')
+            # Redirect based on user type
+            if user.user_type == '1':
+                return redirect('admin_home')
+            elif user.user_type == '2':
+                return redirect('teacher_home')
+            elif user.user_type == '3':
+                return redirect('student_home')
+            elif user.user_type == '4':
+                return redirect('canteen_home')
+        
+        messages.error(request, 'Email and Password Are Invalid!')
+        return redirect('login')
+    
+    return redirect('login')
         
 
 def doLogout(request):
+    # Clear all session data
+    request.session.flush()
     logout(request)
     return redirect('login')
 

@@ -35,36 +35,77 @@
 
 {% include 'includes/messages.html' %}
 
+<style>
+    /* Custom spacing for table cells */
+    .table-spacing th,
+    .table-spacing td {
+        padding: 0.75rem 1rem; /* Increased horizontal padding */
+    }
+    
+    /* Column-specific widths */
+    .card-id-column {
+        width: 15%;
+        min-width: 120px;
+    }
+    .student-name-column {
+        width: 25%;
+        min-width: 180px;
+    }
+    .classroom-column {
+        width: 20%;
+        min-width: 150px;
+    }
+    .date-column {
+        width: 20%;
+        min-width: 160px;
+    }
+    .actions-column {
+        width: 20%;
+        min-width: 150px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .table-spacing th,
+        .table-spacing td {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
 {% for classroom, assigned_cards in assigned_cards_by_classroom.items %}
 <div class="row">
     <div class="col-sm-12">
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">Classroom: <strong>{{ classroom.name }}</strong></h5>
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Card ID</th>
-                            <th>Student Name</th>
-                            <th>Classroom</th>
-                            <th>Issued Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for card in assigned_cards %}
-                        <tr>
-                            <td>{{ card.card_id }}</td>
-                            <td>{{ card.student.admin.first_name }} {{ card.student.admin.last_name }}</td>
-                            <td>{{ card.student.classroom_id.name }}</td>
-                            <td>{{ card.issued_date|date:"M. j, Y, g:i A" }}</td>
-                            <td>
-                                <a href="{% url 'deactivate_card' card.card_id %}" class="btn btn-sm btn-danger">Deactivate Card</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped table-spacing">
+                        <thead>
+                            <tr>
+                                <th class="card-id-column">Card ID</th>
+                                <th class="student-name-column">Student Name</th>
+                                <th class="classroom-column">Classroom</th>
+                                <th class="date-column">Issued Date</th>
+                                <th class="actions-column">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for card in assigned_cards %}
+                            <tr>
+                                <td class="card-id-column">{{ card.card_id }}</td>
+                                <td class="student-name-column">{{ card.student.admin.first_name }} {{ card.student.admin.last_name }}</td>
+                                <td class="classroom-column">{{ card.student.classroom_id.name }}</td>
+                                <td class="date-column">{{ card.issued_date|date:"M. j, Y, g:i A" }}</td>
+                                <td class="actions-column">
+                                    <a href="{% url 'deactivate_card' card.card_id %}" class="btn btn-sm btn-danger">Deactivate Card</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
