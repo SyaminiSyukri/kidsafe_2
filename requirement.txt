@@ -1,4 +1,4 @@
-If you get Server Error (500), you need to create your .env file
+If you want to setup for Forgot Password, you need to create your .env file
 
 -----------------------------------------------------------------
 
