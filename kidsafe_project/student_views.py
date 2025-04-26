@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime
 
-
 @login_required(login_url='/')
 def home(request):
     """
@@ -17,10 +16,10 @@ def home(request):
     try:
         # Get the student object linked to the logged-in user
         student = Student.objects.get(admin=request.user)
-        # Get the teacher for the student's classroom (first teacher if multiple)
-        teacher = Teacher.objects.filter(classroom_id=student.classroom_id).first()
+        # Get the teacher for the student's classroom 
+        teacher = Teacher.objects.filter(classroom_id=student.classroom_id).first() 
     except Student.DoesNotExist:
-        # Handle case where student profile doesn't exist
+        # If the student doesn't exist, redirect or show an error
         return HttpResponse("Student details not found.", status=404)
     
     try:
@@ -28,8 +27,7 @@ def home(request):
         student_account = StudentAccount.objects.get(student=student)
         balance = student_account.balance
     except StudentAccount.DoesNotExist:
-        # Default balance if no account record exists
-        balance = 0.00
+        balance = 0.00  # Default balance if no account exists
 
     context = {
         'student': student,
@@ -47,44 +45,40 @@ def dietary_details(request):
     """
     student = get_object_or_404(Student, admin=request.user)
     
-    # Get existing dietary details or create new record if none exists
+    # Get or create the dietary details for the student
     dietary_detail, created = Dietary.objects.get_or_create(student=student)
 
     if request.method == "POST":
         food_allergy = request.POST.get('food_allergy')
         dietary_restriction = request.POST.get('dietary_restriction')
 
-        # Handle food allergy updates
+        # Append new food allergy to the existing list
         if food_allergy:
             if dietary_detail.food_allergy:
-                # Append to existing comma-separated allergies
-                dietary_detail.food_allergy += f", {food_allergy}"
+                dietary_detail.food_allergy += f", {food_allergy}"  # Append to existing allergies
             else:
-                # First allergy entry
-                dietary_detail.food_allergy = food_allergy
+                dietary_detail.food_allergy = food_allergy  # Add the first allergy
             messages.success(request, 'Food allergy added successfully!')
 
-        # Handle dietary restriction updates
+        # Append new dietary restriction to the existing list
         if dietary_restriction:
             if dietary_detail.dietary_restriction:
-                # Append to existing comma-separated restrictions
-                dietary_detail.dietary_restriction += f", {dietary_restriction}"
+                dietary_detail.dietary_restriction += f", {dietary_restriction}"  # Append to existing restrictions
             else:
-                # First restriction entry
-                dietary_detail.dietary_restriction = dietary_restriction
+                dietary_detail.dietary_restriction = dietary_restriction  # Add the first restriction
             messages.success(request, 'Dietary restriction added successfully!')
 
         dietary_detail.save()
-        return redirect('dietary_details')
+        return redirect('dietary_details')  # Redirect to the same page to see the updated list
 
-    # Prepare lists for template display by splitting comma-separated strings
+    # Split the comma-separated strings into lists for the template
     food_allergies = dietary_detail.food_allergy.split(', ') if dietary_detail.food_allergy else []
     dietary_restrictions = dietary_detail.dietary_restriction.split(', ') if dietary_detail.dietary_restriction else []
 
     context = {
-        'dietary_detail': dietary_detail,
-        'food_allergies': food_allergies,
-        'dietary_restrictions': dietary_restrictions,
+        'dietary_detail': dietary_detail,  # Pass the single dietary detail to the template
+        'food_allergies': food_allergies,  # Pass the list of food allergies
+        'dietary_restrictions': dietary_restrictions,  # Pass the list of dietary restrictions
     }
     return render(request, 'student/dietary_details.html', context)
 
@@ -98,13 +92,13 @@ def delete_dietary_detail(request, item_type, item):
     dietary_detail = get_object_or_404(Dietary, student=student)
 
     if item_type == 'food_allergy':
-        # Process food allergy removal
+        # Remove the specific food allergy from the list
         allergies = dietary_detail.food_allergy.split(', ')
         allergies.remove(item)
         dietary_detail.food_allergy = ', '.join(allergies)
         messages.success(request, 'Food allergy deleted successfully!')
     elif item_type == 'dietary_restriction':
-        # Process dietary restriction removal
+        # Remove the specific dietary restriction from the list
         restrictions = dietary_detail.dietary_restriction.split(', ')
         restrictions.remove(item)
         dietary_detail.dietary_restriction = ', '.join(restrictions)
@@ -120,17 +114,17 @@ def academic_results(request):
     Display student's exam results with filtering capability by exam type.
     """
     student = get_object_or_404(Student, admin=request.user)
-    exam_titles = ExamTitle.objects.all()  # All available exam types for filter dropdown
+    exam_titles = ExamTitle.objects.all()  # Fetch all exam titles
     selected_exam_title_id = request.GET.get('exam_title_id')
 
-    # Base query - all results for current student with related subjects and exam titles
+    # Fetch all results for the student
     results = ExamResult.objects.filter(student=student).select_related('subject', 'exam_title')
 
-    # Apply exam title filter if selected
+    # Filter results based on the selected exam title
     if selected_exam_title_id:
         results = results.filter(exam_title_id=selected_exam_title_id)
 
-    # Organize results by exam title for grouped display
+    # Group results by exam title
     grouped_results = {}
     for result in results:
         exam_title = result.exam_title.title
@@ -167,29 +161,34 @@ def student_attendance(request):
     Show student's attendance records with date filtering.
     Defaults to showing today's attendance if no date specified.
     """
+    # Get the logged-in student
     student = request.user.student
+
+    # Get the date filter from the request
     date_filter = request.GET.get('date', '')
 
-    # Base query - all attendance records for student, newest first
+    # Fetch attendance records for the logged-in student
     attendance_records = Attendance.objects.filter(student=student).order_by('-arrival_time')
 
+    # Apply date filter
     if date_filter:
         try:
-            # Apply date filter if valid date provided
+            # Convert the date string to a datetime object
             filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
+            # Filter records by the selected date
             attendance_records = attendance_records.filter(arrival_time__date=filter_date)
         except ValueError:
-            # Silently handle invalid date format
+            # Handle invalid date format
             pass
     else:
-        # Default to today's records if no date specified
-        today = timezone.localdate()
+        # Default to today's date in the server's timezone
+        today = timezone.localdate()  # Use localdate() to get the current date in the server's timezone
         attendance_records = attendance_records.filter(arrival_time__date=today)
-        date_filter = today.isoformat()
+        date_filter = today.isoformat()  # Set the default date to today
 
     context = {
         'attendance_records': attendance_records,
-        'selected_date': date_filter,
+        'selected_date': date_filter,  # Pass the selected date to the template
     }
     return render(request, 'student/student_attendance.html', context)
 
@@ -200,18 +199,20 @@ def view_account_balance(request):
     Display the student's current account balance.
     Shows $0.00 if no account record exists.
     """
+    # Get the logged-in student
     student = request.user.student
 
+    # Get the student's account balance
     try:
         student_account = StudentAccount.objects.get(student=student)
         balance = student_account.balance
     except StudentAccount.DoesNotExist:
-        balance = 0.00
+        balance = 0.00  # Default balance if no account exists
 
     context = {
         'balance': balance,
     }
-    return render(request, 'student/view_account_balance.html', context)
+    return render(request, 'student/view_account_balance.html', context) 
 
 
 @login_required(login_url='/')
@@ -239,7 +240,7 @@ def mark_notification_as_read(request, notification_id):
     notification = get_object_or_404(
         StudentNotification, 
         id=notification_id,
-        student__admin=request.user  # Security check - only own notifications
+        student__admin=request.user
     )
     notification.read = True
     notification.save()
