@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-5i(rtogbnt!xj-5s$z^usdvwewn@3j^mfpwhd=buxdb3bdw-d+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '192.168.100.16']
+ALLOWED_HOSTS = ['127.0.0.1', '192.168.100.16', '10.95.1.87']
 
 # Session configurations
 SESSION_COOKIE_NAME = 'kidsafe_sessionid'
