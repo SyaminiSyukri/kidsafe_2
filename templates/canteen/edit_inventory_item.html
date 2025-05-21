@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
-{% block content %}
+{% load static %}
+{% load dietary_tags %}
 
+{% block content %}
 <div class="row">
     <div class="col-sm-12">
         <div class="card">
@@ -22,40 +24,85 @@
                         {% endif %}
                     </div>
 
-                    <!-- Item Details in Table Layout -->
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <tbody>
-                                <tr>
-                                    <th scope="row" class="w-25">Name</th>
-                                    <td><input type="text" class="form-control" name="name" value="{{ item.name }}" required></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Price</th>
-                                    <td><input type="number" step="0.01" class="form-control" name="price" value="{{ item.price }}" required></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Description</th>
-                                    <td><textarea class="form-control" name="description">{{ item.description }}</textarea></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Allergies</th>
-                                    <td><input type="text" class="form-control" name="allergies" value="{{ item.allergies }}"></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Restrictions</th>
-                                    <td><input type="text" class="form-control" name="restrictions" value="{{ item.restrictions }}"></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Update Image</th>
-                                    <td>
-                                        <div class="custom-file">
-                                            <input type="file" class="form-control" name="image">
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <!-- Item Details -->
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" class="form-control" name="name" value="{{ item.name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Price</label>
+                        <input type="number" step="0.01" class="form-control" name="price" value="{{ item.price }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea class="form-control" name="description">{{ item.description }}</textarea>
+                    </div>
+                    
+                    <!-- Allergies Section -->
+                    <div class="form-group card mb-3">
+                        <div class="card-header">
+                            <h5>Food Allergies</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group mb-3">
+                                <select id="allergy-select" class="form-control">
+                                    <option value="">Select an allergy</option>
+                                    {% for value, label in allergy_choices %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="input-group-append">
+                                    <button type="button" id="add-allergy" class="btn btn-primary">Add</button>
+                                </div>
+                            </div>
+                            
+                            <div id="selected-allergies" class="selected-items">
+                                {% for allergy in item.food_allergy %}
+                                    <span class="badge badge-warning">
+                                        {{ allergy|get_allergy_display }}
+                                        <button type="button" class="badge-close" data-value="{{ allergy }}">&times;</button>
+                                    </span>
+                                {% endfor %}
+                            </div>
+                            
+                            <input type="hidden" name="food_allergy" id="food-allergy-input" value="{{ item.food_allergy|json_serialize }}">
+                        </div>
+                    </div>
+                    
+                    <!-- Restrictions Section -->
+                    <div class="form-group card">
+                        <div class="card-header">
+                            <h5>Dietary Restrictions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group mb-3">
+                                <select id="restriction-select" class="form-control">
+                                    <option value="">Select a restriction</option>
+                                    {% for value, label in restriction_choices %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="input-group-append">
+                                    <button type="button" id="add-restriction" class="btn btn-primary">Add</button>
+                                </div>
+                            </div>
+                            
+                            <div id="selected-restrictions" class="selected-items">
+                                {% for restriction in item.dietary_restriction %}
+                                    <span class="badge badge-info">
+                                        {{ restriction|get_restriction_display }}
+                                        <button type="button" class="badge-close" data-value="{{ restriction }}">&times;</button>
+                                    </span>
+                                {% endfor %}
+                            </div>
+                            
+                            <input type="hidden" name="dietary_restriction" id="dietary-restriction-input" value="{{ item.dietary_restriction|json_serialize }}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Update Image</label>
+                        <input type="file" class="form-control" name="image">
                     </div>
 
                     <!-- Buttons -->
@@ -68,5 +115,122 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block styles %}
+<style>
+    .selected-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35em 0.65em;
+    }
+    .badge-close {
+        background: transparent;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        margin-left: 0.5rem;
+        line-height: 1;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Allergy handling
+    const allergySelect = document.getElementById('allergy-select');
+    const addAllergyBtn = document.getElementById('add-allergy');
+    const selectedAllergiesDiv = document.getElementById('selected-allergies');
+    const foodAllergyInput = document.getElementById('food-allergy-input');
+    let allergies = JSON.parse(foodAllergyInput.value || '[]');
+    
+    // Initialize display
+    updateAllergyDisplay();
+    
+    addAllergyBtn.addEventListener('click', function() {
+        const selectedOption = allergySelect.options[allergySelect.selectedIndex];
+        if (selectedOption.value && !allergies.includes(selectedOption.value)) {
+            allergies.push(selectedOption.value);
+            updateAllergyDisplay();
+        }
+    });
+    
+    function updateAllergyDisplay() {
+        selectedAllergiesDiv.innerHTML = '';
+        allergies.forEach(allergy => {
+            const value = allergy;
+            const label = allergySelect.querySelector(`option[value="${value}"]`).text;
+            
+            const badge = document.createElement('span');
+            badge.className = 'badge badge-warning';
+            badge.innerHTML = `
+                ${label}
+                <button type="button" class="badge-close" data-value="${value}">&times;</button>
+            `;
+            selectedAllergiesDiv.appendChild(badge);
+        });
+        
+        foodAllergyInput.value = JSON.stringify(allergies);
+    }
+    
+    selectedAllergiesDiv.addEventListener('click', function(e) {
+        if (e.target.classList.contains('badge-close')) {
+            const value = e.target.getAttribute('data-value');
+            allergies = allergies.filter(item => item !== value);
+            updateAllergyDisplay();
+        }
+    });
+    
+    // Restriction handling
+    const restrictionSelect = document.getElementById('restriction-select');
+    const addRestrictionBtn = document.getElementById('add-restriction');
+    const selectedRestrictionsDiv = document.getElementById('selected-restrictions');
+    const dietaryRestrictionInput = document.getElementById('dietary-restriction-input');
+    let restrictions = JSON.parse(dietaryRestrictionInput.value || '[]');
+    
+    // Initialize display
+    updateRestrictionDisplay();
+    
+    addRestrictionBtn.addEventListener('click', function() {
+        const selectedOption = restrictionSelect.options[restrictionSelect.selectedIndex];
+        if (selectedOption.value && !restrictions.includes(selectedOption.value)) {
+            restrictions.push(selectedOption.value);
+            updateRestrictionDisplay();
+        }
+    });
+    
+    function updateRestrictionDisplay() {
+        selectedRestrictionsDiv.innerHTML = '';
+        restrictions.forEach(restriction => {
+            const value = restriction;
+            const label = restrictionSelect.querySelector(`option[value="${value}"]`).text;
+            
+            const badge = document.createElement('span');
+            badge.className = 'badge badge-info';
+            badge.innerHTML = `
+                ${label}
+                <button type="button" class="badge-close" data-value="${value}">&times;</button>
+            `;
+            selectedRestrictionsDiv.appendChild(badge);
+        });
+        
+        dietaryRestrictionInput.value = JSON.stringify(restrictions);
+    }
+    
+    selectedRestrictionsDiv.addEventListener('click', function(e) {
+        if (e.target.classList.contains('badge-close')) {
+            const value = e.target.getAttribute('data-value');
+            restrictions = restrictions.filter(item => item !== value);
+            updateRestrictionDisplay();
+        }
+    });
+});
+</script>
 {% endblock %}

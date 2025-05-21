@@ -116,14 +116,14 @@ urlpatterns = [
     path('teacher/feedback/', teacher_views.send_teacher_feedback, name='send_teacher_feedback'),
     
     #Student page URL
-    path('student/home', student_views.home, name='student_home'),
+    path('student/home/', student_views.home, name='student_home'),
 
-    path('student/dietary-details', student_views.dietary_details, name='dietary_details'),
-    path('student/dietary-details/delete/<str:item_type>/<str:item>/', student_views.delete_dietary_detail, name='delete_dietary_detail'),
+    path('student/dietary-details/', student_views.dietary_details, name='dietary_details'),
     path('student/academic-results/', student_views.academic_results, name='academic_results'),
-    path('student/timetable/view', student_views.view_timetable, name='student_view_timetable'),
+    path('student/timetable/view/', student_views.view_timetable, name='student_view_timetable'),
     path('student/attendance/', student_views.student_attendance, name='student_attendance'),
     path('student/view-account-balance/', student_views.view_account_balance, name='view_account_balance'),
+    path('student/transaction-history/', student_views.student_transaction_history, name='student_transaction_history'),
 
     path('student/notifications/', student_views.view_student_notifications, name='view_student_notifications'),
     path('student/notifications/mark-as-read/<int:notification_id>/', student_views.mark_notification_as_read, name='mark_student_notification_as_read'),
@@ -137,6 +137,7 @@ urlpatterns = [
     path('canteen/inventory/add/', canteen_views.add_inventory_item, name='add_inventory_item'),
     path('canteen/inventory/edit/<int:item_id>/', canteen_views.edit_inventory_item, name='edit_inventory_item'),
     path('canteen/inventory/delete/<int:item_id>/', canteen_views.delete_inventory_item, name='delete_inventory_item'),
+
 
     path('canteen/process-payment/', canteen_views.process_payment, name='process_payment'),
     path('canteen/transaction-history/', canteen_views.transaction_history, name='transaction_history'),

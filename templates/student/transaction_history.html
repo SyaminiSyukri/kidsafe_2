@@ -5,9 +5,9 @@
 <div class="page-header">
     <div class="row align-items-center">
         <div class="col">
-            <h3 class="page-title">Transaction History</h3>
+            <h3 class="page-title">My Transaction History</h3>
             <ul class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'canteen_home' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'student_home' %}">Dashboard</a></li>
                 <li class="breadcrumb-item active">Transaction History</li>
             </ul>
         </div>
@@ -20,40 +20,27 @@
             <div class="card-body">
                 <h5 class="card-title">Filter Transactions</h5>
 
-                <!-- Date Picker and Search Form -->
-                <form method="GET" action="{% url 'transaction_history' %}">
+                <form method="GET" action="{% url 'student_transaction_history' %}">
                     <div class="form-row align-items-end">
-                        <!-- Date Picker -->
                         <div class="form-group col-md-4 col-sm-12">
                             <label for="date">Select Date:</label>
                             <input type="date" id="date" name="date" class="form-control" value="{{ selected_date }}">
                         </div>
 
-                        <!-- Search by Student Name -->
-                        <div class="form-group col-md-4 col-sm-8">
-                            <label for="search">Search by Student Name:</label>
-                            <input type="text" id="search" name="search" class="form-control" placeholder="Enter student name" value="{{ search_query }}">
-                        </div>
-
-                        <!-- Search and Clear Buttons -->
-                        <div class="form-group col-md-4 col-sm-4">
+                        <div class="form-group col-md-6">
                             <label>&nbsp;</label>
                             <div class="d-flex">
                                 <button type="submit" class="btn btn-primary flex-grow-1 mr-2">Filter</button>
-                                <a href="{% url 'transaction_history' %}?date={{ selected_date }}" class="btn btn-secondary flex-grow-1 mr-2">Clear</a>
-                                <a href="{% url 'transaction_history' %}" class="btn btn-secondary flex-grow-1"><i class="fas fa-sync-alt"></i></a>
+                                <a href="{% url 'student_transaction_history' %}" class="btn btn-secondary flex-grow-1"><i class="fas fa-sync-alt"></i></a>
                             </div>
                         </div>
                     </div>
                 </form>
 
-                <!-- Transaction Table -->
                 <div class="table-responsive mt-4">
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>Student Name</th>
-                                <th>Classroom</th>
                                 <th>Items Purchased</th>
                                 <th>Total Amount</th>
                                 <th>Date/Time</th>
@@ -62,20 +49,19 @@
                         <tbody>
                             {% for transaction in transactions %}
                             <tr>
-                                <td>{{ transaction.student.admin.first_name }} {{ transaction.student.admin.last_name }}</td>
-                                <td>{{ transaction.student.classroom_id.name }}</td>
                                 <td>{{ transaction.items }}</td>
                                 <td>${{ transaction.total_amount }}</td>
-                                <td>{{ transaction.transaction_date|date:"Y-m-d H:i:s" }}</td>
+                                <td>{{ transaction.transaction_date|date:"d-m-Y H:i:s" }}</td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="5" class="text-center">No transactions found for this date.</td>
+                                <td colspan="3" class="text-center">No transactions found.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+
             </div>
         </div>
     </div>

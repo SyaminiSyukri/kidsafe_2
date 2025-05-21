@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from kidsafe_app.models import Student, Teacher, Dietary, ExamTitle, ExamResult, Timetable, Attendance, StudentAccount, StudentNotification, FeedbackToAdmin
+from kidsafe_app.models import Student, Teacher, Dietary, ExamTitle, ExamResult, Timetable, Attendance, StudentAccount, StudentNotification, FeedbackToAdmin, Transaction
 from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime
@@ -37,76 +37,46 @@ def home(request):
     return render(request, 'student/home.html', context)
 
 
-@login_required(login_url='/')
+@login_required
 def dietary_details(request):
-    """
-    Manage student's dietary restrictions and allergies.
-    Supports adding new items and displays existing ones.
-    """
     student = get_object_or_404(Student, admin=request.user)
+    dietary, created = Dietary.objects.get_or_create(student=student)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add_allergy':
+            allergy = request.POST.get('allergy')
+            if allergy and allergy not in dietary.food_allergy:
+                dietary.food_allergy.append(allergy)
+                messages.success(request, 'Allergy added successfully')
+        
+        elif action == 'remove_allergy':
+            allergy = request.POST.get('allergy')
+            if allergy in dietary.food_allergy:
+                dietary.food_allergy.remove(allergy)
+                messages.success(request, 'Allergy removed successfully')
+        
+        elif action == 'add_restriction':
+            restriction = request.POST.get('restriction')
+            if restriction and restriction not in dietary.dietary_restriction:
+                dietary.dietary_restriction.append(restriction)
+                messages.success(request, 'Restriction added successfully')
+        
+        elif action == 'remove_restriction':
+            restriction = request.POST.get('restriction')
+            if restriction in dietary.dietary_restriction:
+                dietary.dietary_restriction.remove(restriction)
+                messages.success(request, 'Restriction removed successfully')
+        
+        dietary.save()
+        return redirect('dietary_details')
     
-    # Get or create the dietary details for the student
-    dietary_detail, created = Dietary.objects.get_or_create(student=student)
-
-    if request.method == "POST":
-        food_allergy = request.POST.get('food_allergy')
-        dietary_restriction = request.POST.get('dietary_restriction')
-
-        # Append new food allergy to the existing list
-        if food_allergy:
-            if dietary_detail.food_allergy:
-                dietary_detail.food_allergy += f", {food_allergy}"  # Append to existing allergies
-            else:
-                dietary_detail.food_allergy = food_allergy  # Add the first allergy
-            messages.success(request, 'Food allergy added successfully!')
-
-        # Append new dietary restriction to the existing list
-        if dietary_restriction:
-            if dietary_detail.dietary_restriction:
-                dietary_detail.dietary_restriction += f", {dietary_restriction}"  # Append to existing restrictions
-            else:
-                dietary_detail.dietary_restriction = dietary_restriction  # Add the first restriction
-            messages.success(request, 'Dietary restriction added successfully!')
-
-        dietary_detail.save()
-        return redirect('dietary_details')  # Redirect to the same page to see the updated list
-
-    # Split the comma-separated strings into lists for the template
-    food_allergies = dietary_detail.food_allergy.split(', ') if dietary_detail.food_allergy else []
-    dietary_restrictions = dietary_detail.dietary_restriction.split(', ') if dietary_detail.dietary_restriction else []
-
-    context = {
-        'dietary_detail': dietary_detail,  # Pass the single dietary detail to the template
-        'food_allergies': food_allergies,  # Pass the list of food allergies
-        'dietary_restrictions': dietary_restrictions,  # Pass the list of dietary restrictions
-    }
-    return render(request, 'student/dietary_details.html', context)
-
-
-@login_required(login_url='/')
-def delete_dietary_detail(request, item_type, item):
-    """
-    Remove specific dietary items (allergies or restrictions) from student's record.
-    """
-    student = get_object_or_404(Student, admin=request.user)
-    dietary_detail = get_object_or_404(Dietary, student=student)
-
-    if item_type == 'food_allergy':
-        # Remove the specific food allergy from the list
-        allergies = dietary_detail.food_allergy.split(', ')
-        allergies.remove(item)
-        dietary_detail.food_allergy = ', '.join(allergies)
-        messages.success(request, 'Food allergy deleted successfully!')
-    elif item_type == 'dietary_restriction':
-        # Remove the specific dietary restriction from the list
-        restrictions = dietary_detail.dietary_restriction.split(', ')
-        restrictions.remove(item)
-        dietary_detail.dietary_restriction = ', '.join(restrictions)
-        messages.success(request, 'Dietary restriction deleted successfully!')
-
-    dietary_detail.save()
-    return redirect('dietary_details')
-
+    return render(request, 'student/dietary_details.html', {
+        'dietary': dietary,
+        'allergy_choices': Dietary.FOOD_ALLERGY_CHOICES,
+        'restriction_choices': Dietary.DIETARY_RESTRICTION_CHOICES})
+        
 
 @login_required(login_url='/')
 def academic_results(request):
@@ -265,3 +235,23 @@ def send_student_feedback(request):
         return redirect('send_student_feedback')
     
     return render(request, 'student/send_feedback.html')
+
+
+@login_required
+def student_transaction_history(request):
+    student = request.user.student 
+    selected_date = request.GET.get('date')
+    
+    transactions = Transaction.objects.filter(student=student).order_by('-transaction_date')
+    if selected_date:
+        try:
+            date_obj = datetime.strptime(selected_date, '%Y-%m-%d').date()
+            transactions = transactions.filter(transaction_date__date=date_obj)
+        except ValueError:
+            pass
+
+    context = {
+        'transactions': transactions,
+        'selected_date': selected_date,
+    }
+    return render(request, 'student/transaction_history.html', context)

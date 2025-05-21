@@ -36,60 +36,63 @@ def inventory_item_detail(request, item_id):
 
 @login_required(login_url='/')
 def add_inventory_item(request):
-    """
-    Handle creation of new inventory items.
-    Processes form data and creates new InventoryItem record.
-    """
     if request.method == 'POST':
-        # Extract all form data
         name = request.POST.get('name')
         image = request.FILES.get('image')
         price = request.POST.get('price')
         description = request.POST.get('description')
-        allergies = request.POST.get('allergies')
-        restrictions = request.POST.get('restrictions')
+        
+        # Get allergies and restrictions from hidden inputs
+        food_allergy = json.loads(request.POST.get('food_allergy', '[]'))
+        dietary_restriction = json.loads(request.POST.get('dietary_restriction', '[]'))
 
-        # Create new inventory item with provided data
         InventoryItem.objects.create(
             name=name,
             image=image,
             price=price,
             description=description,
-            allergies=allergies,
-            restrictions=restrictions
+            food_allergy=food_allergy,
+            dietary_restriction=dietary_restriction
         )
         messages.success(request, 'Inventory item added successfully!')
         return redirect('inventory_management')
-    return render(request, 'canteen/add_inventory_item.html')
+    
+    # Pass the choices to the template
+    context = {
+        'allergy_choices': Dietary.get_allergy_choices(),
+        'restriction_choices': Dietary.get_restriction_choices(),
+    }
+    return render(request, 'canteen/add_inventory_item.html', context)
 
 
 @login_required(login_url='/')
 def edit_inventory_item(request, item_id):
-    """
-    Handle updating existing inventory items.
-    Supports partial updates (e.g., changing just the price or image).
-    """
     item = get_object_or_404(InventoryItem, id=item_id)
     if request.method == 'POST':
-        # Update item fields with new values (keeping old ones if not provided)
         item.name = request.POST.get('name')
-        item.image = request.FILES.get('image', item.image)     # Keep existing image if new one not provided
+        item.image = request.FILES.get('image', item.image)
         item.price = request.POST.get('price')
         item.description = request.POST.get('description')
-        item.allergies = request.POST.get('allergies')
-        item.restrictions = request.POST.get('restrictions')
+        
+        # Update allergies and restrictions from JSON strings
+        item.food_allergy = json.loads(request.POST.get('food_allergy', '[]'))
+        item.dietary_restriction = json.loads(request.POST.get('dietary_restriction', '[]'))
+        
         item.save()
         messages.success(request, 'Item updated successfully!')
         return redirect('inventory_item_detail', item_id=item.id)
-    return render(request, 'canteen/edit_inventory_item.html', {'item': item})
-
+    
+    # Pass the choices to the template
+    context = {
+        'item': item,
+        'allergy_choices': Dietary.FOOD_ALLERGY_CHOICES,
+        'restriction_choices': Dietary.DIETARY_RESTRICTION_CHOICES,
+    }
+    return render(request, 'canteen/edit_inventory_item.html', context)
+    
 
 @login_required(login_url='/')
 def delete_inventory_item(request, item_id):
-    """
-    Handle deletion of inventory items.
-    Uses POST method to prevent accidental deletions via GET requests.
-    """
     item = get_object_or_404(InventoryItem, id=item_id)
     if request.method == 'POST':
         item.delete()
@@ -99,11 +102,6 @@ def delete_inventory_item(request, item_id):
 
 @login_required(login_url='/')
 def process_payment(request):
-    """
-    Handle student payment processing in the canteen.
-    Supports both checking balance and making purchases.
-    Returns JSON response for AJAX calls from the frontend.
-    """
     if request.method == 'POST':
         card_id = request.POST.get('card_id')
         amount = request.POST.get('amount')
@@ -116,32 +114,50 @@ def process_payment(request):
 
             # Fetch dietary details for the student
             dietary_details = Dietary.objects.filter(student=card.student).first()
-            food_allergy = dietary_details.food_allergy if dietary_details else None
-            dietary_restriction = dietary_details.dietary_restriction if dietary_details else None
+            student_allergies = set(dietary_details.food_allergy) if dietary_details else set()
+            student_restrictions = set(dietary_details.dietary_restriction) if dietary_details else set()
 
             if amount:
                 try:
                     amount_decimal = Decimal(amount)
-                    # Validate amount is positive
                     if amount_decimal < 0:
                         return JsonResponse({'success': False, 'error': 'Amount cannot be negative.'})
 
-                    # Check sufficient balance
                     if student_account.balance < amount_decimal:
                         return JsonResponse({'success': False, 'error': 'Insufficient balance.'})
+
+                    # Check for dietary conflicts if items are provided
+                    item_conflicts = []
+                    if items:
+                        cart_items = json.loads(items)
+                        for item in cart_items:
+                            inventory_item = InventoryItem.objects.get(id=item['id'])
+                            item_allergies = set(inventory_item.food_allergy)
+                            item_restrictions = set(inventory_item.dietary_restriction)
+                            
+                            # Find matching allergies
+                            allergy_matches = student_allergies.intersection(item_allergies)
+                            restriction_matches = student_restrictions.intersection(item_restrictions)
+                            
+                            if allergy_matches or restriction_matches:
+                                conflict = {
+                                    'item_name': inventory_item.name,
+                                    'allergies': list(allergy_matches),
+                                    'restrictions': list(restriction_matches)
+                                }
+                                item_conflicts.append(conflict)
 
                     # Deduct amount from account
                     student_account.balance -= amount_decimal
                     student_account.save()
 
                     # Parse the cart items and format them as a string
-                    cart_items = json.loads(items)  # Parse the JSON string into a Python list
                     formatted_items = ", ".join([f"{item['name'].strip()} (x{item['quantity']})" for item in cart_items])
 
                     # Record the transaction
                     Transaction.objects.create(
                         student=card.student,
-                        items=formatted_items,  # Store formatted items
+                        items=formatted_items,
                         total_amount=amount_decimal,
                     )
 
@@ -150,18 +166,24 @@ def process_payment(request):
                         'message': f'Payment of ${amount} processed successfully. New balance: ${student_account.balance}',
                         'new_balance': str(student_account.balance),
                         'student_name': f"{card.student.admin.first_name} {card.student.admin.last_name}",
-                        'food_allergy': food_allergy,
-                        'dietary_restriction': dietary_restriction,
+                        'classroom': card.student.classroom_id.name,
+                        'profile_pic': card.student.admin.profile_pic.url if card.student.admin.profile_pic else '',
+                        'food_allergy': list(student_allergies),
+                        'dietary_restriction': list(student_restrictions),
+                        'conflicts': item_conflicts if item_conflicts else None,
                     })
+
                 except InvalidOperation:
                     return JsonResponse({'success': False, 'error': 'Invalid amount. Please enter a valid number.'})
             else:
                 return JsonResponse({
                     'success': True,
                     'student_name': f"{card.student.admin.first_name} {card.student.admin.last_name}",
+                    'classroom': card.student.classroom_id.name,
+                    'profile_pic': card.student.admin.profile_pic.url if card.student.admin.profile_pic else '',
                     'current_balance': str(student_account.balance),
-                    'food_allergy': food_allergy,
-                    'dietary_restriction': dietary_restriction,
+                    'food_allergy': list(student_allergies),
+                    'dietary_restriction': list(student_restrictions),
                 })
 
         except Card.DoesNotExist:
@@ -171,9 +193,12 @@ def process_payment(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-    # Fetch inventory items for the dropdown
     inventory_items = InventoryItem.objects.all().order_by('name')
-    return render(request, 'canteen/process_payment.html', {'inventory_items': inventory_items})
+    return render(request, 'canteen/process_payment.html', {
+        'inventory_items': inventory_items,
+        'allergy_choices': Dietary.FOOD_ALLERGY_CHOICES,
+        'restriction_choices': Dietary.DIETARY_RESTRICTION_CHOICES,
+    })
 
 
 @login_required(login_url='/')

@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load dietary_tags %}
+
 {% block content %}
 
 <div class="page-header">
@@ -32,18 +35,61 @@
                         <textarea class="form-control" name="description"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Allergies</label>
-                        <input type="text" class="form-control" name="allergies">
-                    </div>
-                    <div class="form-group">
-                        <label>Restrictions</label>
-                        <input type="text" class="form-control" name="restrictions">
-                    </div>
-                    <div class="form-group">
                         <label>Image</label>
                         <input type="file" class="form-control" name="image">
                     </div>
-                    <button type="submit" class="btn btn-primary">Add</button>
+                    
+                    <!-- Allergies Section -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Food Allergies</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group mb-3">
+                                <select name="allergy" class="form-control" id="allergy-select">
+                                    <option value="">Select an allergy</option>
+                                    {% for value, label in allergy_choices %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-primary" id="add-allergy">Add</button>
+                                </div>
+                            </div>
+                            
+                            <div class="selected-items" id="selected-allergies">
+                                <!-- Selected allergies will appear here -->
+                            </div>
+                            <input type="hidden" name="food_allergy" id="food-allergy-input" value="[]">
+                        </div>
+                    </div>
+                    
+                    <!-- Restrictions Section -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Dietary Restrictions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group mb-3">
+                                <select name="restriction" class="form-control" id="restriction-select">
+                                    <option value="">Select a restriction</option>
+                                    {% for value, label in restriction_choices %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-primary" id="add-restriction">Add</button>
+                                </div>
+                            </div>
+                            
+                            <div class="selected-items" id="selected-restrictions">
+                                <!-- Selected restrictions will appear here -->
+                            </div>
+                            <input type="hidden" name="dietary_restriction" id="dietary-restriction-input" value="[]">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Add Item</button>
                     <a href="{% url 'inventory_management' %}" class="btn btn-secondary">Cancel</a>
                 </form>
             </div>
@@ -51,4 +97,121 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block styles %}
+<style>
+    .selected-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    .badge {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0.75rem;
+    }
+    .badge-close {
+        background: transparent;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        margin-left: 0.5rem;
+        line-height: 1;
+    }
+    .badge-close:hover {
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Allergies functionality
+    const allergySelect = document.getElementById('allergy-select');
+    const addAllergyBtn = document.getElementById('add-allergy');
+    const selectedAllergies = document.getElementById('selected-allergies');
+    const foodAllergyInput = document.getElementById('food-allergy-input');
+    let allergies = [];
+    
+    addAllergyBtn.addEventListener('click', function() {
+        const selectedOption = allergySelect.options[allergySelect.selectedIndex];
+        if (selectedOption.value && !allergies.includes(selectedOption.value)) {
+            allergies.push(selectedOption.value);
+            updateAllergyDisplay();
+        }
+    });
+    
+    function updateAllergyDisplay() {
+        selectedAllergies.innerHTML = '';
+        allergies.forEach(allergy => {
+            const value = allergy;
+            const label = allergySelect.querySelector(`option[value="${value}"]`).text;
+            
+            const badge = document.createElement('span');
+            badge.className = 'badge badge-pill badge-warning';
+            badge.innerHTML = `
+                ${label}
+                <button type="button" class="badge-close" data-value="${value}">&times;</button>
+            `;
+            selectedAllergies.appendChild(badge);
+        });
+        
+        foodAllergyInput.value = JSON.stringify(allergies);
+        
+        // Add event listeners to remove buttons
+        document.querySelectorAll('#selected-allergies .badge-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                allergies = allergies.filter(item => item !== value);
+                updateAllergyDisplay();
+            });
+        });
+    }
+    
+    // Restrictions functionality
+    const restrictionSelect = document.getElementById('restriction-select');
+    const addRestrictionBtn = document.getElementById('add-restriction');
+    const selectedRestrictions = document.getElementById('selected-restrictions');
+    const dietaryRestrictionInput = document.getElementById('dietary-restriction-input');
+    let restrictions = [];
+    
+    addRestrictionBtn.addEventListener('click', function() {
+        const selectedOption = restrictionSelect.options[restrictionSelect.selectedIndex];
+        if (selectedOption.value && !restrictions.includes(selectedOption.value)) {
+            restrictions.push(selectedOption.value);
+            updateRestrictionDisplay();
+        }
+    });
+    
+    function updateRestrictionDisplay() {
+        selectedRestrictions.innerHTML = '';
+        restrictions.forEach(restriction => {
+            const value = restriction;
+            const label = restrictionSelect.querySelector(`option[value="${value}"]`).text;
+            
+            const badge = document.createElement('span');
+            badge.className = 'badge badge-pill badge-info';
+            badge.innerHTML = `
+                ${label}
+                <button type="button" class="badge-close" data-value="${value}">&times;</button>
+            `;
+            selectedRestrictions.appendChild(badge);
+        });
+        
+        dietaryRestrictionInput.value = JSON.stringify(restrictions);
+        
+        // Add event listeners to remove buttons
+        document.querySelectorAll('#selected-restrictions .badge-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                restrictions = restrictions.filter(item => item !== value);
+                updateRestrictionDisplay();
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -1,126 +1,126 @@
 {% extends 'base.html' %}
-{% block content %}
+{% load static %}
+{% load dietary_tags %}
 
+{% block content %}
 <div class="page-header">
     <div class="row align-items-center">
         <div class="col">
             <h3 class="page-title">Dietary Details</h3>
             <ul class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'student_home' %}">Dashboard</a></li>
-                <li class="breadcrumb-item active">Dietary</li>
+                <li class="breadcrumb-item active">Dietary Details</li>
             </ul>
         </div>
     </div>
 </div>
 {% include 'includes/messages.html' %}
-<div class="container">
-
-    <div class="row mb-4">
-
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Add Food Allergies</h5>
-                    <form method="POST">
-                        {% csrf_token %}
-                        <div class="form-group">
-                            <textarea name="food_allergy" class="form-control" rows="3" placeholder="Enter any food allergies..."></textarea>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                
+                <!-- Allergies Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Food Allergies</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add_allergy">
+                            <div class="input-group">
+                                <select name="allergy" class="form-control">
+                                    <option value="">Select an allergy</option>
+                                    {% for value, label in allergy_choices %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary">Add</button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <div class="selected-items">
+                            {% for allergy in dietary.food_allergy %}
+                                <span class="badge badge-pill badge-warning">
+                                    {{ allergy|get_allergy_display }}
+                                    <form method="post" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="remove_allergy">
+                                        <input type="hidden" name="allergy" value="{{ allergy }}">
+                                        <button type="submit" class="badge-close">&times;</button>
+                                    </form>
+                                </span>
+                            {% empty %}
+                                <p class="text-muted">No allergies specified</p>
+                            {% endfor %}
                         </div>
-                        <button type="submit" class="btn btn-primary">Add</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Add Dietary Restrictions</h5>
-                    <form method="POST">
-                        {% csrf_token %}
-                        <div class="form-group">
-                            <textarea name="dietary_restriction" class="form-control" rows="3" placeholder="Enter any dietary restrictions..."></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Add</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <h3 class="mt-4">Current Dietary Details</h3>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card mt-2 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Current Food Allergies</h5>
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>Food Allergy</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for allergy in food_allergies %}
-                                    <tr>
-                                        <td>{{ allergy }}</td>
-                                        <td>
-                                            <form method="POST" action="{% url 'delete_dietary_detail' 'food_allergy' allergy %}" style="display:inline;">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this item?');"><i class="fas fa-trash"></i></button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="2" class="text-center">No food allergies added yet.</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card mt-2 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Current Dietary Restrictions</h5>
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>Dietary Restriction</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for restriction in dietary_restrictions %}
-                                    <tr>
-                                        <td>{{ restriction }}</td>
-                                        <td>
-                                            <form method="POST" action="{% url 'delete_dietary_detail' 'dietary_restriction' restriction %}" style="display:inline;">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this item?');"><i class="fas fa-trash"></i></button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="2" class="text-center">No dietary restrictions added yet.</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                
+                <!-- Restrictions Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Dietary Restrictions</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add_restriction">
+                            <div class="input-group">
+                                <select name="restriction" class="form-control">
+                                    <option value="">Select a restriction</option>
+                                    {% for value, label in restriction_choices %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary">Add</button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <div class="selected-items">
+                            {% for restriction in dietary.dietary_restriction %}
+                                <span class="badge badge-pill badge-info">
+                                    {{ restriction|get_restriction_display }}
+                                    <form method="post" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="remove_restriction">
+                                        <input type="hidden" name="restriction" value="{{ restriction }}">
+                                        <button type="submit" class="badge-close">&times;</button>
+                                    </form>
+                                </span>
+                            {% empty %}
+                                <p class="text-muted">No restrictions specified</p>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block styles %}
+<style>
+    .selected-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .badge-close {
+        background: transparent;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        padding: 0 0.25rem;
+    }
+    .badge-close:hover {
+        color: white;
+    }
+</style>
 {% endblock %}
